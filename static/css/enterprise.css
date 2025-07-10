@@ -190,7 +190,7 @@ body::before {
 }
 
 .enterprise-logo::after {
-    content: '✨ PREMIUM ✨';
+    content: 'By GorJess & Co.';
     position: absolute;
     top: -30px;
     right: -20px;
@@ -200,7 +200,7 @@ body::before {
     -webkit-text-fill-color: transparent;
     background-clip: text;
     animation: pulse 2s infinite;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.1em;m;
 }
 
 .enterprise-tagline {
