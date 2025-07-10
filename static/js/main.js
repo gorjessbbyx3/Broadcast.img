@@ -48,154 +48,135 @@ class SonificationApp {
             });
         });
 
-        // Encode button
-        const encodeBtn = document.getElementById('encodeBtn');
-        if (encodeBtn) {
-            encodeBtn.addEventListener('click', () => this.handleEncode());
+        // Text encoding
+        const encodeTextBtn = document.getElementById('encodeTextBtn');
+        if (encodeTextBtn) {
+            encodeTextBtn.addEventListener('click', () => this.handleEncode());
         }
 
-        // Decode button
-        const decodeBtn = document.getElementById('decodeBtn');
-        if (decodeBtn) {
-            decodeBtn.addEventListener('click', () => this.handleDecode());
+        // Image encoding
+        const encodeImageBtn = document.getElementById('encodeImageBtn');
+        if (encodeImageBtn) {
+            encodeImageBtn.addEventListener('click', () => this.handleImageEncode());
         }
 
-        // File upload handlers
-        const fileUpload = document.getElementById('fileUpload');
-        if (fileUpload) {
-            fileUpload.addEventListener('change', (e) => this.handleFileSelect(e));
+        // File uploads
+        const textFileInput = document.getElementById('textFileInput');
+        if (textFileInput) {
+            textFileInput.addEventListener('change', (e) => this.handleTextFileUpload(e));
         }
 
-        const imageUpload = document.getElementById('imageUpload');
-        if (imageUpload) {
-            imageUpload.addEventListener('change', (e) => this.handleImageSelect(e));
+        const imageFileInput = document.getElementById('imageFileInput');
+        if (imageFileInput) {
+            imageFileInput.addEventListener('change', (e) => this.handleImageFileUpload(e));
         }
 
-        // Recording controls
-        const startRecordBtn = document.getElementById('startRecord');
-        const stopRecordBtn = document.getElementById('stopRecord');
-        
-        if (startRecordBtn) {
-            startRecordBtn.addEventListener('click', () => this.startRecording());
-        }
-        
-        if (stopRecordBtn) {
-            stopRecordBtn.addEventListener('click', () => this.stopRecording());
+        // Audio decoding
+        const decodeAudioBtn = document.getElementById('decodeAudioBtn');
+        if (decodeAudioBtn) {
+            decodeAudioBtn.addEventListener('click', () => this.handleDecode());
         }
 
-        // Frequency range controls
-        const minFreq = document.getElementById('minFreqRange');
-        const maxFreq = document.getElementById('maxFreqRange');
-        
-        if (minFreq) {
-            minFreq.addEventListener('input', () => this.updateFrequencyRange());
+        // Transcription
+        const transcribeBtn = document.getElementById('transcribeBtn');
+        if (transcribeBtn) {
+            transcribeBtn.addEventListener('click', () => this.handleTranscribe());
         }
-        
-        if (maxFreq) {
-            maxFreq.addEventListener('input', () => this.updateFrequencyRange());
+
+        // Download
+        const downloadBtn = document.getElementById('downloadBtn');
+        if (downloadBtn) {
+            downloadBtn.addEventListener('click', () => this.downloadCurrentFile());
+        }
+
+        // Clear audio
+        const clearAudioBtn = document.getElementById('clearAudioBtn');
+        if (clearAudioBtn) {
+            clearAudioBtn.addEventListener('click', () => this.clearAudio());
         }
     }
 
     setupDragAndDrop() {
-        const dropZone = document.getElementById('dropZone');
-        if (!dropZone) return;
+        // Setup drag and drop for various upload areas
+        const uploadAreas = ['imageUploadArea', 'audioUploadArea'];
+        
+        uploadAreas.forEach(areaId => {
+            const area = document.getElementById(areaId);
+            if (!area) return;
 
-        dropZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropZone.classList.add('drag-over');
-        });
+            area.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                area.classList.add('drag-over');
+            });
 
-        dropZone.addEventListener('dragleave', () => {
-            dropZone.classList.remove('drag-over');
-        });
+            area.addEventListener('dragleave', () => {
+                area.classList.remove('drag-over');
+            });
 
-        dropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropZone.classList.remove('drag-over');
-            
-            const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                this.handleDroppedFile(files[0]);
-            }
+            area.addEventListener('drop', (e) => {
+                e.preventDefault();
+                area.classList.remove('drag-over');
+                this.handleFileDrop(e, areaId);
+            });
+
+            area.addEventListener('click', () => {
+                const fileInput = area.querySelector('input[type="file"]');
+                if (fileInput) fileInput.click();
+            });
         });
     }
 
-    async initializeAudio() {
+    initializeAudio() {
         try {
             this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
         } catch (error) {
-            console.warn('Audio context not available:', error);
+            console.warn('Web Audio API not supported:', error);
         }
     }
 
     setupHeroAnimation() {
-        const canvas = document.getElementById('hero-canvas');
-        if (!canvas) return;
-
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
-
-        canvas.width = canvas.offsetWidth;
-        canvas.height = canvas.offsetHeight;
-
-        this.animateHeroCanvas(ctx, canvas);
-    }
-
-    animateHeroCanvas(ctx, canvas) {
-        const waves = [];
-        for (let i = 0; i < 3; i++) {
-            waves.push({
-                amplitude: 30 + i * 10,
-                frequency: 0.02 + i * 0.01,
-                phase: i * Math.PI / 3,
-                speed: 1 + i * 0.5
-            });
-        }
-
-        let time = 0;
-
-        const animate = () => {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            const centerY = canvas.height / 2;
-            
-            waves.forEach((wave, index) => {
-                ctx.beginPath();
-                ctx.strokeStyle = `rgba(102, 126, 234, ${0.3 + index * 0.2})`;
-                ctx.lineWidth = 2 + index;
-                
-                for (let x = 0; x < canvas.width; x++) {
-                    const y = centerY + Math.sin(x * wave.frequency + time * wave.speed + wave.phase) * wave.amplitude;
-                    
-                    if (x === 0) {
-                        ctx.moveTo(x, y);
-                    } else {
-                        ctx.lineTo(x, y);
-                    }
-                }
-                
-                ctx.stroke();
-            });
-            
-            time += 0.02;
-            requestAnimationFrame(animate);
-        };
-
-        animate();
+        // Add any hero section animations here
+        const heroElements = document.querySelectorAll('.hero-content > *');
+        heroElements.forEach((element, index) => {
+            element.style.animationDelay = `${index * 0.1}s`;
+            element.classList.add('fade-in-up');
+        });
     }
 
     updateModeUI() {
-        const textModeSection = document.getElementById('textModeSection');
-        const imageModeSection = document.getElementById('imageModeSection');
-        
-        if (textModeSection && imageModeSection) {
-            if (this.currentMode === 'text') {
-                textModeSection.style.display = 'block';
-                imageModeSection.style.display = 'none';
-            } else {
-                textModeSection.style.display = 'none';
-                imageModeSection.style.display = 'block';
-            }
+        // Hide all panels
+        document.getElementById('textInputPanel').style.display = 'none';
+        document.getElementById('imageInputPanel').style.display = 'none';
+        document.getElementById('customFrequencyPanel').style.display = 'none';
+
+        // Show selected panel
+        switch (this.currentMode) {
+            case 'text':
+                document.getElementById('textInputPanel').style.display = 'block';
+                break;
+            case 'image':
+                document.getElementById('imageInputPanel').style.display = 'block';
+                break;
+            case 'custom':
+                document.getElementById('customFrequencyPanel').style.display = 'block';
+                this.initializeFrequencyPicker();
+                break;
+        }
+    }
+
+    initializeFrequencyPicker() {
+        const canvas = document.getElementById('frequencyPicker');
+        if (!canvas) return;
+
+        // Initialize frequency picker visualization
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+            ctx.fillStyle = '#f0f0f0';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#333';
+            ctx.font = '16px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Click to draw frequency pattern', canvas.width / 2, canvas.height / 2);
         }
     }
 
@@ -203,70 +184,78 @@ class SonificationApp {
         try {
             this.showLoading(true);
             
-            if (this.currentMode === 'text') {
-                await this.encodeText();
-            } else if (this.currentMode === 'image') {
-                await this.encodeImage();
+            const textInput = document.getElementById('textInput');
+            const text = textInput ? textInput.value.trim() : '';
+            
+            if (!text) {
+                throw new Error('Please enter some text to encode');
+            }
+
+            const minFreq = document.getElementById('minFreq')?.value || 800;
+            const maxFreq = document.getElementById('maxFreq')?.value || 3000;
+
+            const response = await fetch('/api/encode', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    mode: 'text',
+                    text: text,
+                    frequency_range: {
+                        min: parseInt(minFreq),
+                        max: parseInt(maxFreq)
+                    }
+                })
+            });
+
+            const result = await response.json();
+            
+            if (result.success) {
+                this.displayResult('audio', result);
+                this.showAlert('Text encoded successfully!', 'success');
+            } else {
+                throw new Error(result.error);
             }
         } catch (error) {
             console.error('Encoding error:', error);
-            this.showAlert('Encoding failed: ' + error.message, 'error');
+            this.showAlert(error.message, 'danger');
         } finally {
             this.showLoading(false);
         }
     }
 
-    async encodeText() {
-        const textInput = document.getElementById('textInput').value;
-        const minFreq = parseInt(document.getElementById('minFreqRange').value);
-        const maxFreq = parseInt(document.getElementById('maxFreqRange').value);
-        
-        if (!textInput.trim()) {
-            throw new Error('Please enter some text to encode');
-        }
+    async handleImageEncode() {
+        try {
+            this.showLoading(true);
+            
+            const imageFileInput = document.getElementById('imageFileInput');
+            
+            if (!imageFileInput?.files[0]) {
+                throw new Error('Please select an image to encode');
+            }
 
-        const response = await fetch('/api/encode', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                mode: 'text',
-                text: textInput,
-                frequency_range: { min: minFreq, max: maxFreq }
-            })
-        });
+            const formData = new FormData();
+            formData.append('file', imageFileInput.files[0]);
 
-        const result = await response.json();
-        
-        if (result.success) {
-            this.displayResult('audio', result);
-        } else {
-            throw new Error(result.error);
-        }
-    }
+            const response = await fetch('/api/encode-image', {
+                method: 'POST',
+                body: formData
+            });
 
-    async encodeImage() {
-        const imageUpload = document.getElementById('imageUpload');
-        
-        if (!imageUpload.files[0]) {
-            throw new Error('Please select an image to encode');
-        }
-
-        const formData = new FormData();
-        formData.append('file', imageUpload.files[0]);
-
-        const response = await fetch('/api/encode-image', {
-            method: 'POST',
-            body: formData
-        });
-
-        const result = await response.json();
-        
-        if (result.success) {
-            this.displayResult('audio', result);
-        } else {
-            throw new Error(result.error);
+            const result = await response.json();
+            
+            if (result.success) {
+                this.displayResult('audio', result);
+                this.showAlert('Image encoded successfully!', 'success');
+            } else {
+                throw new Error(result.error);
+            }
+        } catch (error) {
+            console.error('Image encoding error:', error);
+            this.showAlert(error.message, 'danger');
+        } finally {
+            this.showLoading(false);
         }
     }
 
@@ -274,14 +263,14 @@ class SonificationApp {
         try {
             this.showLoading(true);
             
-            const fileUpload = document.getElementById('fileUpload');
+            const audioFileInput = document.getElementById('audioFileInput');
             
-            if (!fileUpload.files[0]) {
+            if (!audioFileInput?.files[0]) {
                 throw new Error('Please select an audio file to decode');
             }
 
             const formData = new FormData();
-            formData.append('file', fileUpload.files[0]);
+            formData.append('file', audioFileInput.files[0]);
             formData.append('decode_mode', 'text');
 
             const response = await fetch('/api/decode', {
@@ -292,148 +281,235 @@ class SonificationApp {
             const result = await response.json();
             
             if (result.success) {
-                this.displayResult(result.type, result);
+                this.displayResult('text', result);
+                this.showAlert('Audio decoded successfully!', 'success');
             } else {
                 throw new Error(result.error);
             }
         } catch (error) {
             console.error('Decoding error:', error);
-            this.showAlert('Decoding failed: ' + error.message, 'error');
+            this.showAlert(error.message, 'danger');
         } finally {
             this.showLoading(false);
         }
     }
 
-    displayResult(type, data) {
-        const outputContainer = document.getElementById('outputContainer');
-        
-        if (type === 'audio') {
-            outputContainer.innerHTML = `
-                <div class="audio-result">
-                    <h6>Generated Audio</h6>
-                    <audio controls class="w-100 mb-3">
-                        <source src="${data.download_url}" type="audio/wav">
-                        Your browser does not support the audio element.
-                    </audio>
-                    <a href="${data.download_url}" class="btn btn-outline-primary btn-sm">
-                        <i data-feather="download" class="me-1"></i>
-                        Download
-                    </a>
-                </div>
-            `;
-        } else if (type === 'text') {
-            outputContainer.innerHTML = `
-                <div class="text-result">
-                    <h6>Decoded Text</h6>
-                    <div class="decoded-text p-3 border rounded">
-                        ${data.decoded_text}
-                    </div>
-                </div>
-            `;
-        }
+    async handleTranscribe() {
+        try {
+            this.showLoading(true);
+            
+            const audioFileInput = document.getElementById('audioFileInput');
+            
+            if (!audioFileInput?.files[0]) {
+                throw new Error('Please select an audio file to transcribe');
+            }
 
-        // Refresh feather icons
+            const formData = new FormData();
+            formData.append('file', audioFileInput.files[0]);
+
+            const response = await fetch('/api/transcribe', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+            
+            if (result.success) {
+                this.displayResult('transcript', result);
+                this.showAlert('Audio transcribed successfully!', 'success');
+            } else {
+                throw new Error(result.error);
+            }
+        } catch (error) {
+            console.error('Transcription error:', error);
+            this.showAlert(error.message, 'danger');
+        } finally {
+            this.showLoading(false);
+        }
+    }
+
+    handleTextFileUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const textInput = document.getElementById('textInput');
+            if (textInput) {
+                textInput.value = e.target.result;
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    handleImageFileUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const preview = document.getElementById('imagePreview');
+            const previewImage = document.getElementById('previewImage');
+            const encodeBtn = document.getElementById('encodeImageBtn');
+            
+            if (preview && previewImage) {
+                previewImage.src = e.target.result;
+                preview.style.display = 'block';
+            }
+            
+            if (encodeBtn) {
+                encodeBtn.disabled = false;
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+
+    handleFileDrop(event, areaId) {
+        const files = event.dataTransfer.files;
+        if (files.length === 0) return;
+
+        const fileInput = document.querySelector(`#${areaId} input[type="file"]`);
+        if (fileInput) {
+            fileInput.files = files;
+            fileInput.dispatchEvent(new Event('change'));
+        }
+    }
+
+    displayResult(type, result) {
+        const outputContainer = document.getElementById('outputContainer');
+        if (!outputContainer) return;
+
+        let content = '';
+        
+        switch (type) {
+            case 'audio':
+                this.loadAudio(result.download_url);
+                content = `
+                    <div class="alert alert-success">
+                        <h6><i data-feather="music" class="me-2"></i>Audio Generated</h6>
+                        <p>File: ${result.filename}</p>
+                        <button class="btn btn-sm btn-primary" onclick="window.open('${result.download_url}')">
+                            <i data-feather="download" class="me-1"></i>Download
+                        </button>
+                    </div>
+                `;
+                break;
+            case 'text':
+                content = `
+                    <div class="alert alert-info">
+                        <h6><i data-feather="file-text" class="me-2"></i>Decoded Text</h6>
+                        <div class="decoded-text-content">
+                            <pre>${result.decoded_text}</pre>
+                        </div>
+                    </div>
+                `;
+                break;
+            case 'transcript':
+                content = `
+                    <div class="alert alert-info">
+                        <h6><i data-feather="mic" class="me-2"></i>Transcription</h6>
+                        <div class="transcript-content">
+                            <p>${result.transcript}</p>
+                        </div>
+                    </div>
+                `;
+                break;
+        }
+        
+        outputContainer.innerHTML = content;
+        
+        // Re-initialize feather icons
         if (typeof feather !== 'undefined') {
             feather.replace();
         }
     }
 
-    showLoading(show) {
-        const loadingOverlay = document.getElementById('loading-overlay');
-        if (loadingOverlay) {
-            loadingOverlay.style.display = show ? 'flex' : 'none';
+    loadAudio(url) {
+        const audioPlayer = document.getElementById('audioPlayer');
+        const audioPlaceholder = document.getElementById('audioPlaceholder');
+        const audioControls = document.getElementById('audioControls');
+        const downloadBtn = document.getElementById('downloadBtn');
+        
+        if (audioPlayer && audioPlaceholder && audioControls) {
+            audioPlayer.src = url;
+            audioPlayer.style.display = 'block';
+            audioPlaceholder.style.display = 'none';
+            audioControls.style.display = 'block';
+            
+            this.currentFile = url;
+            
+            if (downloadBtn) {
+                downloadBtn.onclick = () => window.open(url);
+            }
+        }
+    }
+
+    clearAudio() {
+        const audioPlayer = document.getElementById('audioPlayer');
+        const audioPlaceholder = document.getElementById('audioPlaceholder');
+        const audioControls = document.getElementById('audioControls');
+        
+        if (audioPlayer && audioPlaceholder && audioControls) {
+            audioPlayer.src = '';
+            audioPlayer.style.display = 'none';
+            audioPlaceholder.style.display = 'block';
+            audioControls.style.display = 'none';
+            
+            this.currentFile = null;
+        }
+    }
+
+    downloadCurrentFile() {
+        if (this.currentFile) {
+            window.open(this.currentFile);
         }
     }
 
     showAlert(message, type = 'info') {
-        const toast = document.getElementById('toast');
-        const toastBody = toast.querySelector('.toast-body');
+        const alertsContainer = document.getElementById('alertsContainer');
+        if (!alertsContainer) return;
+
+        const alert = document.createElement('div');
+        alert.className = `alert alert-${type} alert-dismissible fade show`;
+        alert.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
         
-        toastBody.textContent = message;
+        alertsContainer.appendChild(alert);
         
-        const bsToast = new bootstrap.Toast(toast);
-        bsToast.show();
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            if (alert.parentNode) {
+                alert.remove();
+            }
+        }, 5000);
     }
 
-    updateFrequencyRange() {
-        const minFreq = parseInt(document.getElementById('minFreqRange').value);
-        const maxFreq = parseInt(document.getElementById('maxFreqRange').value);
-        
-        document.getElementById('minFreqValue').textContent = minFreq;
-        document.getElementById('maxFreqValue').textContent = maxFreq;
-    }
-
-    handleFileSelect(event) {
-        this.currentFile = event.target.files[0];
-    }
-
-    handleImageSelect(event) {
-        this.currentFile = event.target.files[0];
-    }
-
-    handleDroppedFile(file) {
-        // Handle dropped file based on type
-        if (file.type.startsWith('audio/')) {
-            document.getElementById('fileUpload').files = file;
-        } else if (file.type.startsWith('image/')) {
-            document.getElementById('imageUpload').files = file;
+    showLoading(show) {
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        if (loadingOverlay) {
+            loadingOverlay.style.display = show ? 'flex' : 'none';
         }
-    }
-
-    async startRecording() {
-        // Recording functionality would go here
-        this.showAlert('Recording feature coming soon!', 'info');
-    }
-
-    stopRecording() {
-        // Stop recording functionality would go here
     }
 }
 
-// Frequency presets
-function setFrequencyPreset(preset) {
-    let min, max;
+// Utility functions
+function setFrequencyPreset(min, max) {
+    const minFreqRange = document.getElementById('minFreqRange');
+    const maxFreqRange = document.getElementById('maxFreqRange');
+    const minFreq = document.getElementById('minFreq');
+    const maxFreq = document.getElementById('maxFreq');
     
-    switch(preset) {
-        case 'bass':
-            min = 20;
-            max = 250;
-            break;
-        case 'mid':
-            min = 250;
-            max = 4000;
-            break;
-        case 'high':
-            min = 4000;
-            max = 20000;
-            break;
-        case 'full':
-            min = 20;
-            max = 20000;
-            break;
-        default:
-            min = 800;
-            max = 3000;
-    }
-    
-    document.getElementById('minFreqRange').value = min;
-    document.getElementById('maxFreqRange').value = max;
-
-    // Update frequency picker if active
-    if (window.sonificationApp && window.sonificationApp.frequencyPicker) {
-        window.sonificationApp.updateFrequencyRange();
-    }
-
-    // Show toast
-    if (window.sonificationApp) {
-        window.sonificationApp.showAlert(`Frequency range set to ${min}-${max} Hz`, 'info');
+    if (minFreqRange && maxFreqRange && minFreq && maxFreq) {
+        minFreqRange.value = min;
+        maxFreqRange.value = max;
+        minFreq.value = min;
+        maxFreq.value = max;
     }
 }
 
 // Initialize the app when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', () => {
     window.sonificationApp = new SonificationApp();
 });
-
-// Export for global access
-window.SonificationApp = SonificationApp;
