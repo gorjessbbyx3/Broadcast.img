@@ -1,0 +1,8 @@
+numpy
+scipy
+matplotlib
+sounddevice
+soundfile
+openai-whisper
+torch
+ffmpeg-python
