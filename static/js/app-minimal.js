@@ -535,6 +535,21 @@ function handleAudioError(error) {
     showToast('Audio processing failed. Please try again.', 'error');
 }
 
+// Show loading overlay
+function showLoading() {
+    const overlay = document.getElementById('loadingOverlay');
+    const spinner = overlay.querySelector('.spinner-border');
+    if (spinner) {
+        spinner.className = 'premium-loading';
+    }
+    overlay.style.display = 'flex';
+}
+
+// Hide loading overlay
+function hideLoading() {
+    document.getElementById('loadingOverlay').style.display = 'none';
+}
+
 // Safe icon replacement function
 function replaceIcons() {
     try {
