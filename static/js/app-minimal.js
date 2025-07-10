@@ -529,6 +529,42 @@ function scrollToSection(sectionId) {
     }
 }
 
+// Error handling for audio operations
+function handleAudioError(error) {
+    console.error('Audio processing error:', error);
+    showToast('Audio processing failed. Please try again.', 'error');
+}
+
+// Safe icon replacement function
+function replaceIcons() {
+    try {
+        if (typeof feather !== 'undefined') {
+            feather.replace();
+        }
+    } catch (error) {
+        console.warn('Feather icons not available:', error);
+    }
+}
+
+// Initialize icons when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    replaceIcons();
+
+    // Re-replace icons after dynamic content updates
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.addedNodes.length > 0) {
+                replaceIcons();
+            }
+        });
+    });
+
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
+});
+
 // Initialize the application when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     new SonificationStudio();
