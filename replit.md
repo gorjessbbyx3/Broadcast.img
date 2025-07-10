@@ -7,6 +7,8 @@ Sonification Studio is a Flask-based web application that transforms text, image
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+Professional appearance: Remove competition references, maintain enterprise quality.
+Code integrity: All components must have proper API endpoints and error handling.
 
 ## System Architecture
 

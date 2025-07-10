@@ -314,8 +314,7 @@ def competition_demo():
     try:
         demo_data = {
             'platform': 'Sonification Studio Enterprise',
-            'team': 'Team Replit',
-            'version': '2.0 Competition Edition',
+            'version': '2.0 Professional Edition',
             'competition_features': {
                 'ai_compatibility': {
                     'accuracy': '99.7%',
@@ -361,7 +360,7 @@ def competition_demo():
         return jsonify({
             'success': True,
             'demo_data': demo_data,
-            'message': '🏆 Enterprise sonification platform ready for AI competition victory!',
+            'message': 'Professional sonification platform ready for deployment.',
             'timestamp': datetime.utcnow().isoformat()
         })
         

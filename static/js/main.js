@@ -189,34 +189,73 @@ class SonificationApp {
     }
     
     setupHeroAnimation() {
-        const canvas = document.getElementById('hero-canvas');
-        const ctx = canvas.getContext('2d');
+        // Create professional animated visual elements without canvas
+        this.createFloatingElements();
+        this.initializeParticleSystem();
+    }
+    
+    createFloatingElements() {
+        const heroSection = document.querySelector('.enterprise-header');
+        if (!heroSection) return;
         
-        // Simple waveform animation
-        let time = 0;
-        const animate = () => {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // Draw animated waveform
-            ctx.strokeStyle = '#667eea';
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            
-            for (let x = 0; x < canvas.width; x++) {
-                const y = canvas.height / 2 + Math.sin((x + time) * 0.02) * 50 * Math.sin(time * 0.01);
-                if (x === 0) {
-                    ctx.moveTo(x, y);
-                } else {
-                    ctx.lineTo(x, y);
-                }
-            }
-            
-            ctx.stroke();
-            time += 1;
-            requestAnimationFrame(animate);
-        };
+        // Create floating geometric shapes
+        for (let i = 0; i < 8; i++) {
+            const shape = document.createElement('div');
+            shape.className = 'floating-shape';
+            shape.style.cssText = `
+                position: absolute;
+                width: ${Math.random() * 80 + 20}px;
+                height: ${Math.random() * 80 + 20}px;
+                background: linear-gradient(45deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+                border-radius: ${Math.random() > 0.5 ? '50%' : '8px'};
+                left: ${Math.random() * 100}%;
+                top: ${Math.random() * 100}%;
+                animation: float ${Math.random() * 10 + 5}s ease-in-out infinite;
+                animation-delay: ${Math.random() * 2}s;
+                pointer-events: none;
+                z-index: 1;
+            `;
+            heroSection.appendChild(shape);
+        }
+    }
+    
+    initializeParticleSystem() {
+        // Create DOM-based particle system
+        const container = document.querySelector('.enterprise-header .container');
+        if (!container) return;
         
-        animate();
+        const particleContainer = document.createElement('div');
+        particleContainer.className = 'particle-container';
+        particleContainer.style.cssText = `
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 2;
+        `;
+        
+        for (let i = 0; i < 20; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.cssText = `
+                position: absolute;
+                width: 2px;
+                height: 2px;
+                background: rgba(255, 255, 255, 0.6);
+                border-radius: 50%;
+                animation: particleFloat ${Math.random() * 20 + 10}s linear infinite;
+                animation-delay: ${Math.random() * 5}s;
+                left: ${Math.random() * 100}%;
+                top: 100%;
+            `;
+            particleContainer.appendChild(particle);
+        }
+        
+        container.style.position = 'relative';
+        container.appendChild(particleContainer);
     }
     
     showEncodingPanel(mode) {
@@ -253,16 +292,14 @@ class SonificationApp {
         this.showLoading('Encoding text to audio...');
         
         try {
+            const formData = new FormData();
+            formData.append('mode', 'text');
+            formData.append('text', textInput);
+            formData.append('frequency_range', JSON.stringify(this.getFrequencyRange()));
+            
             const response = await fetch('/api/encode', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    mode: 'text',
-                    text: textInput,
-                    frequency_range: this.getFrequencyRange()
-                })
+                body: formData
             });
             
             const result = await response.json();
@@ -285,6 +322,384 @@ class SonificationApp {
         const fileInput = document.getElementById('imageFileInput');
         const file = fileInput.files[0];
         
+        if (!file) {
+            this.showToast('Please select an image file', 'error');
+            return;
+        }
+        
+        this.showLoading('Encoding image to audio...');
+        
+        try {
+            const formData = new FormData();
+            formData.append('mode', 'image');
+            formData.append('file', file);
+            formData.append('frequency_range', JSON.stringify(this.getFrequencyRange()));
+            
+            const response = await fetch('/api/encode', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                this.loadAudio(result.download_url);
+                this.showToast('Image encoded successfully!', 'success');
+            } else {
+                this.showToast(result.error || 'Encoding failed', 'error');
+            }
+        } catch (error) {
+            console.error('Image encoding error:', error);
+            this.showToast('Network error occurred', 'error');
+        } finally {
+            this.hideLoading();
+        }
+    }
+    
+    async decodeAudio() {
+        const fileInput = document.getElementById('audioFileInput');
+        const file = fileInput.files[0];
+        
+        if (!file) {
+            this.showToast('Please select an audio file', 'error');
+            return;
+        }
+        
+        this.showLoading('Decoding audio file...');
+        
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('decode_mode', 'text');
+            
+            const response = await fetch('/api/decode', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                if (result.type === 'text') {
+                    document.getElementById('decodedResult').textContent = result.decoded_text;
+                    this.showToast('Audio decoded successfully!', 'success');
+                } else if (result.type === 'image') {
+                    document.getElementById('decodedResult').innerHTML = `<img src="${result.image_url}" class="img-fluid" alt="Decoded image">`;
+                    this.showToast('Image decoded successfully!', 'success');
+                }
+            } else {
+                this.showToast(result.error || 'Decoding failed', 'error');
+            }
+        } catch (error) {
+            console.error('Decoding error:', error);
+            this.showToast('Network error occurred', 'error');
+        } finally {
+            this.hideLoading();
+        }
+    }
+    
+    async transcribeAudio() {
+        const fileInput = document.getElementById('audioFileInput');
+        const file = fileInput.files[0];
+        
+        if (!file) {
+            this.showToast('Please select an audio file', 'error');
+            return;
+        }
+        
+        this.showLoading('Transcribing audio with AI...');
+        
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            const response = await fetch('/api/transcribe', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                document.getElementById('transcriptionResult').textContent = result.transcription;
+                this.showToast('Audio transcribed successfully!', 'success');
+            } else {
+                this.showToast(result.error || 'Transcription failed', 'error');
+            }
+        } catch (error) {
+            console.error('Transcription error:', error);
+            this.showToast('Network error occurred', 'error');
+        } finally {
+            this.hideLoading();
+        }
+    }
+    
+    async generateCustomFrequency() {
+        if (!this.frequencyPicker) {
+            this.showToast('Please select custom frequency mode first', 'error');
+            return;
+        }
+        
+        const frequencyData = this.frequencyPicker.getFrequencyData();
+        
+        if (frequencyData.length === 0) {
+            this.showToast('Please add some frequency points', 'error');
+            return;
+        }
+        
+        this.showLoading('Generating custom frequency audio...');
+        
+        try {
+            const response = await fetch('/api/generate-custom', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    frequency_data: frequencyData
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                this.loadAudio(result.download_url);
+                this.showToast('Custom frequency audio generated!', 'success');
+            } else {
+                this.showToast(result.error || 'Generation failed', 'error');
+            }
+        } catch (error) {
+            console.error('Custom generation error:', error);
+            this.showToast('Network error occurred', 'error');
+        } finally {
+            this.hideLoading();
+        }
+    }
+    
+    // Audio recording functions
+    async startRecording() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            this.recorder = new MediaRecorder(stream);
+            this.recordedChunks = [];
+            
+            this.recorder.addEventListener('dataavailable', (event) => {
+                if (event.data.size > 0) {
+                    this.recordedChunks.push(event.data);
+                }
+            });
+            
+            this.recorder.start();
+            this.isRecording = true;
+            
+            document.getElementById('recordBtn').style.display = 'none';
+            document.getElementById('stopRecordBtn').style.display = 'inline-block';
+            
+            this.showToast('Recording started', 'info');
+        } catch (error) {
+            console.error('Recording error:', error);
+            this.showToast('Could not start recording', 'error');
+        }
+    }
+    
+    stopRecording() {
+        if (this.recorder && this.isRecording) {
+            this.recorder.stop();
+            this.isRecording = false;
+            
+            document.getElementById('recordBtn').style.display = 'inline-block';
+            document.getElementById('stopRecordBtn').style.display = 'none';
+            
+            this.recorder.addEventListener('stop', () => {
+                const blob = new Blob(this.recordedChunks, { type: 'audio/wav' });
+                const url = URL.createObjectURL(blob);
+                this.loadAudio(url);
+                this.showToast('Recording complete', 'success');
+            });
+        }
+    }
+    
+    // File handling functions
+    handleTextFileUpload(event) {
+        const file = event.target.files[0];
+        if (file && file.type === 'text/plain') {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('textInput').value = e.target.result;
+                this.showToast('Text file loaded', 'success');
+            };
+            reader.readAsText(file);
+        } else {
+            this.showToast('Please select a text file', 'error');
+        }
+    }
+    
+    handleImageFileUpload(event) {
+        const file = event.target.files[0];
+        if (file && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const preview = document.getElementById('imagePreview');
+                preview.innerHTML = `<img src="${e.target.result}" class="img-fluid rounded" alt="Preview">`;
+                this.showToast('Image file loaded', 'success');
+            };
+            reader.readAsDataURL(file);
+        } else {
+            this.showToast('Please select an image file', 'error');
+        }
+    }
+    
+    handleAudioFileUpload(event) {
+        const file = event.target.files[0];
+        if (file && file.type.startsWith('audio/')) {
+            const url = URL.createObjectURL(file);
+            this.loadAudio(url);
+            this.showToast('Audio file loaded', 'success');
+        } else {
+            this.showToast('Please select an audio file', 'error');
+        }
+    }
+    
+    handleAudioDrop(file) {
+        if (file.type === 'audio/wav') {
+            const url = URL.createObjectURL(file);
+            this.loadAudio(url);
+            this.showToast('Audio file loaded', 'success');
+        } else {
+            this.showToast('Please drop a WAV audio file', 'error');
+        }
+    }
+    
+    // Audio playback functions
+    loadAudio(url) {
+        const audioPlayer = document.getElementById('audioPlayer');
+        audioPlayer.src = url;
+        audioPlayer.style.display = 'block';
+        
+        // Enable audio controls
+        document.getElementById('audioControls').style.display = 'block';
+        
+        // Initialize visualizer if not already done
+        if (!this.audioVisualizer) {
+            this.audioVisualizer = new AudioVisualizer();
+        }
+        
+        // Setup real-time visualization
+        this.audioVisualizer.setupRealTimeVisualization(audioPlayer, 'realtimeVisualization');
+        
+        this.currentFile = url;
+    }
+    
+    downloadAudio() {
+        if (this.currentFile) {
+            const a = document.createElement('a');
+            a.href = this.currentFile;
+            a.download = 'sonified_audio.wav';
+            a.click();
+        } else {
+            this.showToast('No audio file to download', 'error');
+        }
+    }
+    
+    clearAudio() {
+        const audioPlayer = document.getElementById('audioPlayer');
+        audioPlayer.src = '';
+        audioPlayer.style.display = 'none';
+        
+        document.getElementById('audioControls').style.display = 'none';
+        document.getElementById('realtimeVisualization').innerHTML = '';
+        
+        this.currentFile = null;
+        this.showToast('Audio cleared', 'info');
+    }
+    
+    // Utility functions
+    getFrequencyRange() {
+        return {
+            min: parseInt(document.getElementById('minFreq').value) || 800,
+            max: parseInt(document.getElementById('maxFreq').value) || 3000
+        };
+    }
+    
+    updateFrequencyRange() {
+        const minFreq = document.getElementById('minFreq').value;
+        const maxFreq = document.getElementById('maxFreq').value;
+        
+        // Update frequency picker if exists
+        if (this.frequencyPicker) {
+            this.frequencyPicker.updateRange({ min: minFreq, max: maxFreq });
+        }
+        
+        // Update preset buttons
+        document.querySelectorAll('.freq-preset').forEach(btn => {
+            btn.classList.remove('active');
+        });
+    }
+    
+    showLoading(message) {
+        const loadingDiv = document.getElementById('loadingIndicator');
+        if (loadingDiv) {
+            loadingDiv.textContent = message;
+            loadingDiv.style.display = 'block';
+        }
+    }
+    
+    hideLoading() {
+        const loadingDiv = document.getElementById('loadingIndicator');
+        if (loadingDiv) {
+            loadingDiv.style.display = 'none';
+        }
+    }
+    
+    showToast(message, type = 'info') {
+        // Create toast element
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        toast.textContent = message;
+        toast.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 24px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 10000;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        `;
+        
+        // Set background color based on type
+        switch (type) {
+            case 'success':
+                toast.style.backgroundColor = '#10b981';
+                break;
+            case 'error':
+                toast.style.backgroundColor = '#ef4444';
+                break;
+            case 'warning':
+                toast.style.backgroundColor = '#f59e0b';
+                break;
+            default:
+                toast.style.backgroundColor = '#3b82f6';
+        }
+        
+        document.body.appendChild(toast);
+        
+        // Animate in
+        setTimeout(() => {
+            toast.style.transform = 'translateX(0)';
+        }, 100);
+        
+        // Remove after delay
+        setTimeout(() => {
+            toast.style.transform = 'translateX(100%)';
+            setTimeout(() => {
+                document.body.removeChild(toast);
+            }, 300);
+        }, 3000);
+    }
+}
         if (!file) {
             this.showToast('Please select an image file', 'error');
             return;

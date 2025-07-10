@@ -3,68 +3,7 @@
 {% block title %}Sonification Studio - Premium Audio Processing{% endblock %}
 
 {% block content %}
-<!-- Enterprise Header Section -->
-<section class="enterprise-header">
-    <div class="container">
-        <div class="row align-items-center min-vh-100">
-            <div class="col-lg-12 text-center">
-                <div class="enterprise-logo">
-                    🎵 Sonification Studio Enterprise
-                    <span class="premium-badge">AI COMPETITION EDITION</span>
-                </div>
-                <div class="enterprise-tagline">
-                    Advanced AI-Compatible Audio Encoding Platform
-                    <br>
-                    <strong>Built for Team Replit's AI Competition Victory</strong>
-                </div>
-                
-                <!-- Premium Stats Banner -->
-                <div class="stats-container">
-                    <div class="stat-card">
-                        <div class="stat-number">99.7%</div>
-                        <div class="stat-label">AI Decode Accuracy</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number">20k Hz</div>
-                        <div class="stat-label">Full Spectrum Range</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number">0.1s</div>
-                        <div class="stat-label">Per Character Duration</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number">44.1k</div>
-                        <div class="stat-label">Sample Rate (CD Quality)</div>
-                    </div>
-                </div>
-                
-                <!-- Enterprise Features -->
-                <div class="tech-specs">
-                    <h6>🏆 Competition-Grade Features</h6>
-                    <ul class="text-start">
-                        <li>✅ AI-optimized frequency mapping with separator tones</li>
-                        <li>✅ Real-time image-to-audio conversion with visualization</li>
-                        <li>✅ Enterprise-grade glass-morphism UI design</li>
-                        <li>✅ Professional audio analysis and spectrum visualization</li>
-                        <li>✅ Custom frequency picker with live preview</li>
-                        <li>✅ Comprehensive AI compatibility documentation</li>
-                    </ul>
-                </div>
-                
-                <div class="hero-buttons mt-4">
-                    <button class="btn btn-premium btn-lg me-3" onclick="scrollToSection('encoding')">
-                        <i data-feather="play-circle" class="me-2"></i>
-                        Start Creating Audio
-                    </button>
-                    <button class="btn btn-outline-premium btn-lg" onclick="scrollToSection('features')">
-                        <i data-feather="award" class="me-2"></i>
-                        View Competition Features
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
+{% include 'components/hero_section.html' %}
 
 <!-- Encoding Section -->
 <section id="encoding" class="section-padding">
@@ -251,7 +190,7 @@
                             Audio File Upload
                         </h5>
                         <div class="upload-area" id="audioUploadArea">
-                            <i data-feather="file-audio" class="upload-icon"></i>
+                            <i data-feather="volume-2" class="upload-icon"></i>
                             <p class="upload-text">Drag and drop an audio file or click to browse</p>
                             <input type="file" class="form-control" id="audioFileInput" 
                                    accept="audio/wav" style="display: none;">
