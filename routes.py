@@ -25,13 +25,21 @@ def index():
 @app.route('/api/encode', methods=['POST'])
 def encode_audio():
     try:
-        data = request.get_json()
-        if not data:
-            return jsonify({'error': 'No data provided'}), 400
-        
-        encoding_mode = data.get('mode', 'text')
-        text_input = data.get('text', '')
-        frequency_range = data.get('frequency_range', {'min': 800, 'max': 3000})
+        # Handle both JSON and form data
+        if request.is_json:
+            data = request.get_json()
+            encoding_mode = data.get('mode', 'text')
+            text_input = data.get('text', '')
+            frequency_range = data.get('frequency_range', {'min': 800, 'max': 3000})
+        else:
+            # Handle form data
+            encoding_mode = request.form.get('mode', 'text')
+            text_input = request.form.get('text', '')
+            frequency_range_str = request.form.get('frequency_range', '{"min": 800, "max": 3000}')
+            try:
+                frequency_range = json.loads(frequency_range_str)
+            except:
+                frequency_range = {'min': 800, 'max': 3000}
         
         processor = AudioProcessor()
         
@@ -62,6 +70,53 @@ def encode_audio():
                 })
             else:
                 return jsonify({'error': 'Failed to encode text'}), 500
+        
+        elif encoding_mode == 'image' and 'file' in request.files:
+            # Handle image encoding
+            file = request.files['file']
+            if file.filename == '':
+                return jsonify({'error': 'No file selected'}), 400
+            
+            if file and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                unique_filename = f"upload_{uuid.uuid4().hex}_{filename}"
+                filepath = os.path.join(app.config['TEMP_FOLDER'], unique_filename)
+                file.save(filepath)
+                
+                # Process image to audio
+                image_processor = ImageProcessor()
+                frequencies = image_processor.image_to_frequencies(filepath)
+                
+                # Generate audio file
+                audio_filename = f"encoded_image_{uuid.uuid4().hex}.wav"
+                audio_filepath = os.path.join(app.config['TEMP_FOLDER'], audio_filename)
+                
+                success = processor.encode_frequencies_to_audio(frequencies, audio_filepath)
+                
+                # Clean up uploaded image
+                os.remove(filepath)
+                
+                if success:
+                    # Save to database
+                    audio_file = AudioFile(
+                        filename=audio_filename,
+                        original_filename=filename,
+                        file_type='audio',
+                        encoding_mode='image',
+                        file_size=os.path.getsize(audio_filepath)
+                    )
+                    db.session.add(audio_file)
+                    db.session.commit()
+                    
+                    return jsonify({
+                        'success': True,
+                        'filename': audio_filename,
+                        'download_url': f'/download/{audio_filename}'
+                    })
+                else:
+                    return jsonify({'error': 'Failed to encode image'}), 500
+            else:
+                return jsonify({'error': 'Invalid file type'}), 400
         
         return jsonify({'error': 'Invalid encoding mode or missing data'}), 400
         
