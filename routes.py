@@ -9,6 +9,7 @@ from models import AudioFile, ProcessingJob
 from audio_processor import AudioProcessor
 from image_processor import ImageProcessor
 from openai_service import transcribe_audio_file
+from ai_frequency_optimizer import AIFrequencyOptimizer
 import logging
 
 logger = logging.getLogger(__name__)
@@ -286,6 +287,63 @@ def transcribe_audio():
     except Exception as e:
         logger.error(f"Error in transcribe_audio: {str(e)}")
         return jsonify({'error': f'Transcription failed: {str(e)}'}), 500
+
+@app.route('/api/optimize-frequency', methods=['POST'])
+def optimize_frequency():
+    """AI-powered frequency optimization endpoint"""
+    try:
+        optimizer = AIFrequencyOptimizer()
+        
+        # Get content type and data
+        content_type = request.form.get('type', 'text')
+        
+        if content_type == 'text':
+            text_content = request.form.get('text', '')
+            if not text_content.strip():
+                return jsonify({'error': 'No text content provided'}), 400
+            
+            recommendations = optimizer.get_ai_recommendations('text', content=text_content)
+            
+        elif content_type == 'image':
+            if 'file' not in request.files:
+                return jsonify({'error': 'No image file provided'}), 400
+            
+            file = request.files['file']
+            if file.filename == '':
+                return jsonify({'error': 'No file selected'}), 400
+            
+            # Save temporary file for analysis
+            temp_filename = f"temp_analysis_{uuid.uuid4().hex}.{file.filename.split('.')[-1]}"
+            temp_path = os.path.join(app.config['TEMP_FOLDER'], temp_filename)
+            file.save(temp_path)
+            
+            try:
+                recommendations = optimizer.get_ai_recommendations('image', image_path=temp_path)
+            finally:
+                # Clean up temp file
+                if os.path.exists(temp_path):
+                    os.remove(temp_path)
+        
+        else:
+            return jsonify({'error': 'Invalid content type'}), 400
+        
+        if recommendations['success']:
+            return jsonify({
+                'success': True,
+                'optimization': recommendations['optimization'],
+                'analysis': recommendations['content_analysis'],
+                'recommendations': recommendations['recommendations']
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': recommendations.get('error', 'Optimization failed'),
+                'fallback_frequencies': recommendations.get('fallback_frequencies')
+            }), 500
+    
+    except Exception as e:
+        logger.error(f"Error in optimize_frequency: {str(e)}")
+        return jsonify({'error': f'Frequency optimization failed: {str(e)}'}), 500
 
 @app.route('/api/visualize', methods=['POST'])
 def visualize_audio():
