@@ -700,73 +700,36 @@ class SonificationApp {
         }, 3000);
     }
 }
-        if (!file) {
-            this.showToast('Please select an image file', 'error');
-            return;
-        }
-        
-        this.showLoading('Encoding image to audio...');
-        
-        try {
-            const formData = new FormData();
-            formData.append('file', file);
-            
-            const response = await fetch('/api/encode-image', {
-                method: 'POST',
-                body: formData
-            });
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                this.loadAudio(result.download_url);
-                this.showToast('Image encoded successfully!', 'success');
-            } else {
-                this.showToast(result.error || 'Image encoding failed', 'error');
-            }
-        } catch (error) {
-            console.error('Image encoding error:', error);
-            this.showToast('Network error occurred', 'error');
-        } finally {
-            this.hideLoading();
-        }
+
+// Global functions for inline event handlers
+function scrollToSection(sectionId) {
+    const section = document.getElementById(sectionId);
+    if (section) {
+        section.scrollIntoView({ behavior: 'smooth' });
     }
+}
+
+function setFrequencyPreset(min, max) {
+    document.getElementById('minFreq').value = min;
+    document.getElementById('maxFreq').value = max;
+    document.getElementById('minFreqRange').value = min;
+    document.getElementById('maxFreqRange').value = max;
     
-    async decodeAudio() {
-        const fileInput = document.getElementById('audioFileInput');
-        const file = fileInput.files[0];
-        
-        if (!file) {
-            this.showToast('Please select an audio file', 'error');
-            return;
-        }
-        
-        // Get decode mode
-        const decodeMode = document.querySelector('input[name="decodeMode"]:checked')?.value || 'text';
-        
-        this.showLoading(`Decoding audio to ${decodeMode}...`);
-        
-        try {
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('decode_mode', decodeMode);
-            
-            // Add image dimensions if image mode
-            if (decodeMode === 'image') {
-                const width = document.getElementById('imageWidth')?.value || 100;
-                const height = document.getElementById('imageHeight')?.value || 100;
-                formData.append('width', width);
-                formData.append('height', height);
-            }
-            
-            // Add frequency range
-            const frequencyRange = this.getFrequencyRange();
-            formData.append('frequency_range', JSON.stringify(frequencyRange));
-            
-            const response = await fetch('/api/decode', {
-                method: 'POST',
-                body: formData
-            });
+    // Update preset buttons
+    document.querySelectorAll('.freq-preset').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    event.target.classList.add('active');
+}
+
+function initializeApp() {
+    // Initialize the app when DOM is loaded
+    const app = new SonificationApp();
+    return app;
+}
+
+// Initialize when DOM is ready
+document.addEventListener('DOMContentLoaded', initializeApp);
             
             const result = await response.json();
             
