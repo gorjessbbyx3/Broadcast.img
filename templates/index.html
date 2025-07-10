@@ -10,7 +10,7 @@
     <div class="container">
         <h2 class="section-title">Audio Encoding Studio</h2>
         <p class="section-subtitle">Transform text and images into audio with customizable parameters</p>
-        
+
         <div class="row">
             <div class="col-lg-8">
                 <!-- Encoding Mode Selector -->
@@ -26,13 +26,13 @@
                                 <i data-feather="type" class="me-2"></i>
                                 Text
                             </label>
-                            
+
                             <input type="radio" class="btn-check" name="encodingMode" id="imageMode" value="image">
                             <label class="btn btn-outline-primary" for="imageMode">
                                 <i data-feather="image" class="me-2"></i>
                                 Image
                             </label>
-                            
+
                             <input type="radio" class="btn-check" name="encodingMode" id="customMode" value="custom">
                             <label class="btn btn-outline-primary" for="customMode">
                                 <i data-feather="sliders" class="me-2"></i>
@@ -41,7 +41,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Text Input Panel -->
                 <div class="card glass-card mb-4" id="textInputPanel">
                     <div class="card-body">
@@ -64,7 +64,7 @@
                         </button>
                     </div>
                 </div>
-                
+
                 <!-- Image Input Panel -->
                 <div class="card glass-card mb-4" id="imageInputPanel" style="display: none;">
                     <div class="card-body">
@@ -87,7 +87,7 @@
                         </button>
                     </div>
                 </div>
-                
+
                 <!-- Custom Frequency Panel -->
                 <div class="card glass-card mb-4" id="customFrequencyPanel" style="display: none;">
                     <div class="card-body">
@@ -126,7 +126,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="col-lg-4">
                 <!-- Audio Player -->
                 <div class="card glass-card mb-4">
@@ -156,7 +156,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Audio Visualization -->
                 <div class="card glass-card">
                     <div class="card-body">
@@ -180,7 +180,7 @@
     <div class="container">
         <h2 class="section-title">Audio Decoding Lab</h2>
         <p class="section-subtitle">Decode audio files back to text or transcribe speech</p>
-        
+
         <div class="row">
             <div class="col-lg-6">
                 <div class="card glass-card mb-4">
@@ -207,7 +207,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Microphone Recording -->
                 <div class="card glass-card">
                     <div class="card-body">
@@ -235,7 +235,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="col-lg-6">
                 <div class="card glass-card">
                     <div class="card-body">
@@ -261,7 +261,7 @@
     <div class="container">
         <h2 class="section-title">Premium Features</h2>
         <p class="section-subtitle">Advanced audio processing capabilities</p>
-        
+
         <div class="row">
             <div class="col-lg-4 mb-4">
                 <div class="feature-card">
@@ -272,7 +272,7 @@
                     <p>Convert any text into unique audio frequencies with customizable parameters.</p>
                 </div>
             </div>
-            
+
             <div class="col-lg-4 mb-4">
                 <div class="feature-card">
                     <div class="feature-icon">
@@ -282,7 +282,7 @@
                     <p>Transform images into audio by converting pixels to frequencies.</p>
                 </div>
             </div>
-            
+
             <div class="col-lg-4 mb-4">
                 <div class="feature-card">
                     <div class="feature-icon">
@@ -292,7 +292,7 @@
                     <p>Professional spectrum analyzer and waveform display.</p>
                 </div>
             </div>
-            
+
             <div class="col-lg-4 mb-4">
                 <div class="feature-card">
                     <div class="feature-icon">
@@ -302,7 +302,7 @@
                     <p>Powered by OpenAI Whisper for accurate speech-to-text conversion.</p>
                 </div>
             </div>
-            
+
             <div class="col-lg-4 mb-4">
                 <div class="feature-card">
                     <div class="feature-icon">
@@ -312,7 +312,7 @@
                     <p>Full control over frequency ranges and audio parameters.</p>
                 </div>
             </div>
-            
+
             <div class="col-lg-4 mb-4">
                 <div class="feature-card">
                     <div class="feature-icon">
@@ -331,7 +331,7 @@
     <div class="container">
         <!-- Alerts Container -->
         <div id="alertsContainer"></div>
-        
+
         <!-- Mode Selection -->
         <div class="row mb-4">
             <div class="col-12">
@@ -463,5 +463,490 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="{{ url_for('static', filename='js/app-minimal.js') }}"></script>
+<script src="{{ url_for('static', filename='js/audio-visualizer.js') }}"></script>
+<script src="{{ url_for('static', filename='js/frequency-picker.js') }}"></script>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
 {% endblock %}
+```
+
+```python
+def replace_icon(html_code):
+    old_str = "<i data-feather=\"file-audio\" class=\"me-2\"></i>"
+    new_str = "<i data-feather=\"music\" class=\"me-2\"></i>"
+    modified_html = html_code.replace(old_str, new_str)
+    return modified_html
+
+original_html = """
+{% extends "base.html" %}
+
+{% block title %}Sonification Studio - Premium Audio Processing{% endblock %}
+
+{% block content %}
+{% include 'components/hero_section.html' %}
+
+<!-- Encoding Section -->
+<section id="encoding" class="section-padding">
+    <div class="container">
+        <h2 class="section-title">Audio Encoding Studio</h2>
+        <p class="section-subtitle">Transform text and images into audio with customizable parameters</p>
+
+        <div class="row">
+            <div class="col-lg-8">
+                <!-- Encoding Mode Selector -->
+                <div class="card glass-card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">
+                            <i data-feather="settings" class="me-2"></i>
+                            Encoding Mode
+                        </h5>
+                        <div class="btn-group w-100" role="group">
+                            <input type="radio" class="btn-check" name="encodingMode" id="textMode" value="text" checked>
+                            <label class="btn btn-outline-primary" for="textMode">
+                                <i data-feather="type" class="me-2"></i>
+                                Text
+                            </label>
+
+                            <input type="radio" class="btn-check" name="encodingMode" id="imageMode" value="image">
+                            <label class="btn btn-outline-primary" for="imageMode">
+                                <i data-feather="image" class="me-2"></i>
+                                Image
+                            </label>
+
+                            <input type="radio" class="btn-check" name="encodingMode" id="customMode" value="custom">
+                            <label class="btn btn-outline-primary" for="customMode">
+                                <i data-feather="sliders" class="me-2"></i>
+                                Custom
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Text Input Panel -->
+                <div class="card glass-card mb-4" id="textInputPanel">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">
+                            <i data-feather="edit-3" class="me-2"></i>
+                            Text Input
+                        </h5>
+                        <div class="mb-3">
+                            <label for="textInput" class="form-label">Enter text to encode:</label>
+                            <textarea class="form-control" id="textInput" rows="4" 
+                                    placeholder="Enter your text here..."></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="textFileInput" class="form-label">Or upload a text file:</label>
+                            <input type="file" class="form-control" id="textFileInput" accept=".txt">
+                        </div>
+                        <button class="btn btn-primary" id="encodeTextBtn">
+                            <i data-feather="music" class="me-2"></i>
+                            Encode to Audio
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Image Input Panel -->
+                <div class="card glass-card mb-4" id="imageInputPanel" style="display: none;">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">
+                            <i data-feather="upload" class="me-2"></i>
+                            Image Input
+                        </h5>
+                        <div class="upload-area" id="imageUploadArea">
+                            <i data-feather="image" class="upload-icon"></i>
+                            <p class="upload-text">Drag and drop an image or click to browse</p>
+                            <input type="file" class="form-control" id="imageFileInput" 
+                                   accept="image/*" style="display: none;">
+                        </div>
+                        <div class="mt-3" id="imagePreview" style="display: none;">
+                            <img id="previewImage" class="img-fluid rounded" style="max-height: 200px;">
+                        </div>
+                        <button class="btn btn-primary mt-3" id="encodeImageBtn" disabled>
+                            <i data-feather="music" class="me-2"></i>
+                            Encode Image to Audio
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Custom Frequency Panel -->
+                <div class="card glass-card mb-4" id="customFrequencyPanel" style="display: none;">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">
+                            <i data-feather="activity" class="me-2"></i>
+                            Custom Frequency Generator
+                        </h5>
+                        <div class="frequency-picker-container">
+                            <canvas id="frequencyPicker" width="600" height="200"></canvas>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <label for="minFreq" class="form-label">Min Frequency (Hz):</label>
+                                <input type="range" class="form-range mb-2" id="minFreqRange" min="20" max="20000" value="800">
+                                <input type="number" class="form-control" id="minFreq" value="800" min="20" max="20000">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="maxFreq" class="form-label">Max Frequency (Hz):</label>
+                                <input type="range" class="form-range mb-2" id="maxFreqRange" min="20" max="20000" value="3000">
+                                <input type="number" class="form-control" id="maxFreq" value="3000" min="20" max="20000">
+                            </div>
+                        </div>
+                        <div class="frequency-presets mt-3">
+                            <h6>Frequency Presets:</h6>
+                            <div class="btn-group-sm" role="group">
+                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="setFrequencyPreset(200, 800)">Bass</button>
+                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="setFrequencyPreset(800, 3000)">Mid</button>
+                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="setFrequencyPreset(3000, 8000)">High</button>
+                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="setFrequencyPreset(20, 20000)">Full</button>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary mt-3" id="generateCustomBtn">
+                            <i data-feather="zap" class="me-2"></i>
+                            Generate Custom Audio
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <!-- Audio Player -->
+                <div class="card glass-card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">
+                            <i data-feather="headphones" class="me-2"></i>
+                            Audio Player
+                        </h5>
+                        <div class="audio-player-container">
+                            <audio id="audioPlayer" controls class="w-100" style="display: none;">
+                                Your browser does not support the audio element.
+                            </audio>
+                            <div class="audio-placeholder" id="audioPlaceholder">
+                                <i data-feather="music" class="placeholder-icon"></i>
+                                <p class="mb-0">No audio loaded</p>
+                            </div>
+                        </div>
+                        <div class="mt-3" id="audioControls" style="display: none;">
+                            <button class="btn btn-sm btn-outline-primary me-2" id="downloadBtn">
+                                <i data-feather="download" class="me-1"></i>
+                                Download
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" id="clearAudioBtn">
+                                <i data-feather="x" class="me-1"></i>
+                                Clear
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Audio Visualization -->
+                <div class="card glass-card">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">
+                            <i data-feather="bar-chart-2" class="me-2"></i>
+                            Audio Visualization
+                        </h5>
+                        <div class="visualization-container">
+                            <canvas id="waveformCanvas" width="300" height="150"></canvas>
+                            <canvas id="spectrumCanvas" width="300" height="150"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Decoding Section -->
+<section id="decoding" class="section-padding bg-light-glass">
+    <div class="container">
+        <h2 class="section-title">Audio Decoding Lab</h2>
+        <p class="section-subtitle">Decode audio files back to text or transcribe speech</p>
+
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="card glass-card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">
+                            <i data-feather="upload-cloud" class="me-2"></i>
+                            Audio File Upload
+                        </h5>
+                        <div class="upload-area" id="audioUploadArea">
+                            <i data-feather="volume-2" class="upload-icon"></i>
+                            <p class="upload-text">Drag and drop an audio file or click to browse</p>
+                            <input type="file" class="form-control" id="audioFileInput" 
+                                   accept="audio/wav" style="display: none;">
+                        </div>
+                        <div class="mt-3">
+                            <button class="btn btn-primary me-2" id="decodeAudioBtn" disabled>
+                                <i data-feather="unlock" class="me-2"></i>
+                                Decode Audio
+                            </button>
+                            <button class="btn btn-outline-primary" id="transcribeBtn" disabled>
+                                <i data-feather="mic" class="me-2"></i>
+                                Transcribe Speech
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Microphone Recording -->
+                <div class="card glass-card">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">
+                            <i data-feather="mic" class="me-2"></i>
+                            Live Recording
+                        </h5>
+                        <div class="recording-controls">
+                            <button class="btn btn-danger" id="recordBtn">
+                                <i data-feather="circle" class="me-2"></i>
+                                Start Recording
+                            </button>
+                            <button class="btn btn-secondary" id="stopRecordBtn" disabled>
+                                <i data-feather="square" class="me-2"></i>
+                                Stop Recording
+                            </button>
+                        </div>
+                        <div class="mt-3" id="recordingStatus" style="display: none;">
+                            <div class="progress">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                     role="progressbar" style="width: 0%"></div>
+                            </div>
+                            <small class="text-muted mt-1">Recording in progress...</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="card glass-card">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">
+                            <i data-feather="message-square" class="me-2"></i>
+                            Output Results
+                        </h5>
+                        <div class="output-container" id="outputContainer">
+                            <div class="output-placeholder">
+                                <i data-feather="file-text" class="placeholder-icon"></i>
+                                <p class="mb-0">Results will appear here</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section id="features" class="section-padding">
+    <div class="container">
+        <h2 class="section-title">Premium Features</h2>
+        <p class="section-subtitle">Advanced audio processing capabilities</p>
+
+        <div class="row">
+            <div class="col-lg-4 mb-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i data-feather="type"></i>
+                    </div>
+                    <h5>Text to Sound</h5>
+                    <p>Convert any text into unique audio frequencies with customizable parameters.</p>
+                </div>
+            </div>
+
+            <div class="col-lg-4 mb-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i data-feather="image"></i>
+                    </div>
+                    <h5>Image Sonification</h5>
+                    <p>Transform images into audio by converting pixels to frequencies.</p>
+                </div>
+            </div>
+
+            <div class="col-lg-4 mb-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i data-feather="activity"></i>
+                    </div>
+                    <h5>Real-time Visualization</h5>
+                    <p>Professional spectrum analyzer and waveform display.</p>
+                </div>
+            </div>
+
+            <div class="col-lg-4 mb-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i data-feather="mic"></i>
+                    </div>
+                    <h5>AI Transcription</h5>
+                    <p>Powered by OpenAI Whisper for accurate speech-to-text conversion.</p>
+                </div>
+            </div>
+
+            <div class="col-lg-4 mb-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i data-feather="sliders"></i>
+                    </div>
+                    <h5>Custom Frequencies</h5>
+                    <p>Full control over frequency ranges and audio parameters.</p>
+                </div>
+            </div>
+
+            <div class="col-lg-4 mb-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i data-feather="download"></i>
+                    </div>
+                    <h5>Export Options</h5>
+                    <p>Download your audio creations in high-quality WAV format.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Main Application Section -->
+<section class="py-5">
+    <div class="container">
+        <!-- Alerts Container -->
+        <div id="alertsContainer"></div>
+
+        <!-- Mode Selection -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card glass-card">
+                    <div class="card-body">
+                        <h5 class="card-title">Select Mode</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="encodingMode" id="textMode" value="text" checked>
+                                    <label class="form-check-label" for="textMode">
+                                        Text to Audio
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="encodingMode" id="imageMode" value="image">
+                                    <label class="form-check-label" for="imageMode">
+                                        Image to Audio
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Text Section -->
+        <div id="textSection" class="row mb-4">
+            <div class="col-12">
+                <div class="card glass-card">
+                    <div class="card-body">
+                        <h5 class="card-title">Text Input</h5>
+                        <div class="mb-3">
+                            <label for="textInput" class="form-label">Enter text to encode:</label>
+                            <textarea class="form-control" id="textInput" rows="4" placeholder="Type your message here..."></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="textUpload" class="form-label">Or upload a text file:</label>
+                            <input type="file" class="form-control" id="textUpload" accept=".txt">
+                        </div>
+                        <button type="button" id="encodeBtn" class="btn btn-primary">
+                            <i data-feather="volume-2"></i> Encode to Audio
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Image Section -->
+        <div id="imageSection" class="row mb-4" style="display: none;">
+            <div class="col-12">
+                <div class="card glass-card">
+                    <div class="card-body">
+                        <h5 class="card-title">Image Input</h5>
+                        <div class="mb-3">
+                            <label for="imageUpload" class="form-label">Upload an image:</label>
+                            <input type="file" class="form-control" id="imageUpload" accept="image/*">
+                        </div>
+                        <div id="imagePreview" class="mb-3"></div>
+                        <button type="button" id="encodeImageBtn" class="btn btn-primary">
+                            <i data-feather="volume-2"></i> Encode Image to Audio
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Frequency Controls -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card glass-card">
+                    <div class="card-body">
+                        <h5 class="card-title">Frequency Range</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label for="minFreq" class="form-label">Min Frequency: <span id="minFreqDisplay">800 Hz</span></label>
+                                <input type="range" class="form-range" id="minFreq" min="100" max="2000" value="800">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="maxFreq" class="form-label">Max Frequency: <span id="maxFreqDisplay">3000 Hz</span></label>
+                                <input type="range" class="form-range" id="maxFreq" min="1000" max="8000" value="3000">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Decode Section -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card glass-card">
+                    <div class="card-body">
+                        <h5 class="card-title">Decode Audio</h5>
+                        <div class="mb-3">
+                            <label for="audioUpload" class="form-label">Upload audio file to decode:</label>
+                            <input type="file" class="form-control" id="audioUpload" accept=".wav">
+                        </div>
+                        <div class="row mb-3" id="imageDecodeOptions" style="display: none;">
+                            <div class="col-md-6">
+                                <label for="imageWidth" class="form-label">Image Width:</label>
+                                <input type="number" class="form-control" id="imageWidth" value="100" min="10" max="500">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="imageHeight" class="form-label">Image Height:</label>
+                                <input type="number" class="form-control" id="imageHeight" value="100" min="10" max="500">
+                            </div>
+                        </div>
+                        <button type="button" id="decodeBtn" class="btn btn-success">
+                            <i data-feather="volume-x"></i> Decode Audio
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div id="resultSection" style="display: none;">
+        </div>
+    </div>
+</section>v>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/audio-visualizer.js') }}"></script>
+<script src="{{ url_for('static', filename='js/frequency-picker.js') }}"></script>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% endblock %}
+"""
+
+modified_html = replace_icon(original_html)
+print(modified_html)

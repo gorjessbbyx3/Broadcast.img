@@ -1,3 +1,4 @@
+
 class SonificationApp {
     constructor() {
         this.audioContext = null;
@@ -29,7 +30,6 @@ class SonificationApp {
         if (!themeToggle) return;
 
         const currentTheme = localStorage.getItem('theme') || 'light';
-
         document.documentElement.setAttribute('data-theme', currentTheme);
 
         themeToggle.addEventListener('click', () => {
@@ -60,52 +60,63 @@ class SonificationApp {
             decodeBtn.addEventListener('click', () => this.handleDecode());
         }
 
-        // File inputs
-        const audioUpload = document.getElementById('audioUpload');
-        if (audioUpload) {
-            audioUpload.addEventListener('change', (e) => this.handleFileUpload(e));
+        // File upload handlers
+        const fileUpload = document.getElementById('fileUpload');
+        if (fileUpload) {
+            fileUpload.addEventListener('change', (e) => this.handleFileSelect(e));
         }
 
         const imageUpload = document.getElementById('imageUpload');
         if (imageUpload) {
-            imageUpload.addEventListener('change', (e) => this.handleImageUpload(e));
+            imageUpload.addEventListener('change', (e) => this.handleImageSelect(e));
+        }
+
+        // Recording controls
+        const startRecordBtn = document.getElementById('startRecord');
+        const stopRecordBtn = document.getElementById('stopRecord');
+        
+        if (startRecordBtn) {
+            startRecordBtn.addEventListener('click', () => this.startRecording());
+        }
+        
+        if (stopRecordBtn) {
+            stopRecordBtn.addEventListener('click', () => this.stopRecording());
         }
 
         // Frequency range controls
-        const minFreq = document.getElementById('minFreq');
-        const maxFreq = document.getElementById('maxFreq');
-        if (minFreq) minFreq.addEventListener('input', () => this.updateFrequencyRange());
-        if (maxFreq) maxFreq.addEventListener('input', () => this.updateFrequencyRange());
-
-        // Text upload
-        const textUpload = document.getElementById('textUpload');
-        if (textUpload) {
-            textUpload.addEventListener('change', (e) => this.handleTextUpload(e));
+        const minFreq = document.getElementById('minFreqRange');
+        const maxFreq = document.getElementById('maxFreqRange');
+        
+        if (minFreq) {
+            minFreq.addEventListener('input', () => this.updateFrequencyRange());
+        }
+        
+        if (maxFreq) {
+            maxFreq.addEventListener('input', () => this.updateFrequencyRange());
         }
     }
 
     setupDragAndDrop() {
-        const dropZones = document.querySelectorAll('.drop-zone');
+        const dropZone = document.getElementById('dropZone');
+        if (!dropZone) return;
 
-        dropZones.forEach(zone => {
-            zone.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                zone.classList.add('drag-over');
-            });
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('drag-over');
+        });
 
-            zone.addEventListener('dragleave', () => {
-                zone.classList.remove('drag-over');
-            });
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('drag-over');
+        });
 
-            zone.addEventListener('drop', (e) => {
-                e.preventDefault();
-                zone.classList.remove('drag-over');
-
-                const files = e.dataTransfer.files;
-                if (files.length > 0) {
-                    this.handleDroppedFile(files[0], zone);
-                }
-            });
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                this.handleDroppedFile(files[0]);
+            }
         });
     }
 
@@ -118,25 +129,72 @@ class SonificationApp {
     }
 
     setupHeroAnimation() {
-        // Simple animation for hero section
-        const heroElements = document.querySelectorAll('.hero-content > *');
-        heroElements.forEach((el, index) => {
-            el.style.animationDelay = `${index * 0.1}s`;
-            el.classList.add('fade-in-up');
-        });
+        const canvas = document.getElementById('hero-canvas');
+        if (!canvas) return;
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+
+        this.animateHeroCanvas(ctx, canvas);
+    }
+
+    animateHeroCanvas(ctx, canvas) {
+        const waves = [];
+        for (let i = 0; i < 3; i++) {
+            waves.push({
+                amplitude: 30 + i * 10,
+                frequency: 0.02 + i * 0.01,
+                phase: i * Math.PI / 3,
+                speed: 1 + i * 0.5
+            });
+        }
+
+        let time = 0;
+
+        const animate = () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const centerY = canvas.height / 2;
+            
+            waves.forEach((wave, index) => {
+                ctx.beginPath();
+                ctx.strokeStyle = `rgba(102, 126, 234, ${0.3 + index * 0.2})`;
+                ctx.lineWidth = 2 + index;
+                
+                for (let x = 0; x < canvas.width; x++) {
+                    const y = centerY + Math.sin(x * wave.frequency + time * wave.speed + wave.phase) * wave.amplitude;
+                    
+                    if (x === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+                
+                ctx.stroke();
+            });
+            
+            time += 0.02;
+            requestAnimationFrame(animate);
+        };
+
+        animate();
     }
 
     updateModeUI() {
-        const textSection = document.getElementById('textSection');
-        const imageSection = document.getElementById('imageSection');
-
-        if (textSection && imageSection) {
+        const textModeSection = document.getElementById('textModeSection');
+        const imageModeSection = document.getElementById('imageModeSection');
+        
+        if (textModeSection && imageModeSection) {
             if (this.currentMode === 'text') {
-                textSection.style.display = 'block';
-                imageSection.style.display = 'none';
+                textModeSection.style.display = 'block';
+                imageModeSection.style.display = 'none';
             } else {
-                textSection.style.display = 'none';
-                imageSection.style.display = 'block';
+                textModeSection.style.display = 'none';
+                imageModeSection.style.display = 'block';
             }
         }
     }
@@ -144,7 +202,7 @@ class SonificationApp {
     async handleEncode() {
         try {
             this.showLoading(true);
-
+            
             if (this.currentMode === 'text') {
                 await this.encodeText();
             } else if (this.currentMode === 'image') {
@@ -159,12 +217,13 @@ class SonificationApp {
     }
 
     async encodeText() {
-        const textInput = document.getElementById('textInput');
-        if (!textInput || !textInput.value.trim()) {
+        const textInput = document.getElementById('textInput').value;
+        const minFreq = parseInt(document.getElementById('minFreqRange').value);
+        const maxFreq = parseInt(document.getElementById('maxFreqRange').value);
+        
+        if (!textInput.trim()) {
             throw new Error('Please enter some text to encode');
         }
-
-        const frequencyRange = this.getFrequencyRange();
 
         const response = await fetch('/api/encode', {
             method: 'POST',
@@ -173,23 +232,24 @@ class SonificationApp {
             },
             body: JSON.stringify({
                 mode: 'text',
-                text: textInput.value.trim(),
-                frequency_range: frequencyRange
+                text: textInput,
+                frequency_range: { min: minFreq, max: maxFreq }
             })
         });
 
         const result = await response.json();
-
+        
         if (result.success) {
-            this.showResult(result);
+            this.displayResult('audio', result);
         } else {
-            throw new Error(result.error || 'Encoding failed');
+            throw new Error(result.error);
         }
     }
 
     async encodeImage() {
         const imageUpload = document.getElementById('imageUpload');
-        if (!imageUpload || !imageUpload.files[0]) {
+        
+        if (!imageUpload.files[0]) {
             throw new Error('Please select an image to encode');
         }
 
@@ -202,34 +262,27 @@ class SonificationApp {
         });
 
         const result = await response.json();
-
+        
         if (result.success) {
-            this.showResult(result);
+            this.displayResult('audio', result);
         } else {
-            throw new Error(result.error || 'Image encoding failed');
+            throw new Error(result.error);
         }
     }
 
     async handleDecode() {
-        const audioUpload = document.getElementById('audioUpload');
-        if (!audioUpload || !audioUpload.files[0]) {
-            this.showAlert('Please select an audio file to decode', 'warning');
-            return;
-        }
-
         try {
             this.showLoading(true);
+            
+            const fileUpload = document.getElementById('fileUpload');
+            
+            if (!fileUpload.files[0]) {
+                throw new Error('Please select an audio file to decode');
+            }
 
             const formData = new FormData();
-            formData.append('file', audioUpload.files[0]);
-            formData.append('decode_mode', this.currentMode);
-
-            if (this.currentMode === 'image') {
-                const width = document.getElementById('imageWidth')?.value || 100;
-                const height = document.getElementById('imageHeight')?.value || 100;
-                formData.append('width', width);
-                formData.append('height', height);
-            }
+            formData.append('file', fileUpload.files[0]);
+            formData.append('decode_mode', 'text');
 
             const response = await fetch('/api/decode', {
                 method: 'POST',
@@ -237,11 +290,11 @@ class SonificationApp {
             });
 
             const result = await response.json();
-
+            
             if (result.success) {
-                this.showDecodeResult(result);
+                this.displayResult(result.type, result);
             } else {
-                throw new Error(result.error || 'Decoding failed');
+                throw new Error(result.error);
             }
         } catch (error) {
             console.error('Decoding error:', error);
@@ -251,139 +304,33 @@ class SonificationApp {
         }
     }
 
-    handleFileUpload(event) {
-        const file = event.target.files[0];
-        if (file) {
-            this.currentFile = file;
-            this.showAlert(`File selected: ${file.name}`, 'success');
-        }
-    }
-
-    handleImageUpload(event) {
-        const file = event.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const preview = document.getElementById('imagePreview');
-                if (preview) {
-                    preview.innerHTML = `<img src="${e.target.result}" alt="Preview" style="max-width: 200px; max-height: 200px;">`;
-                }
-            };
-            reader.readAsDataURL(file);
-        }
-    }
-
-    async handleTextUpload(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        const formData = new FormData();
-        formData.append('file', file);
-
-        try {
-            const response = await fetch('/api/upload-text', {
-                method: 'POST',
-                body: formData
-            });
-
-            const result = await response.json();
-
-            if (result.success) {
-                const textInput = document.getElementById('textInput');
-                if (textInput) {
-                    textInput.value = result.content;
-                }
-                this.showAlert(`Text loaded from ${result.filename}`, 'success');
-            } else {
-                throw new Error(result.error);
-            }
-        } catch (error) {
-            this.showAlert('Failed to load text file: ' + error.message, 'error');
-        }
-    }
-
-    handleDroppedFile(file, zone) {
-        const fileType = file.type;
-
-        if (fileType.startsWith('text/')) {
-            // Handle text file
-            const textUpload = document.getElementById('textUpload');
-            if (textUpload) {
-                textUpload.files = file;
-                this.handleTextUpload({ target: { files: [file] } });
-            }
-        } else if (fileType.startsWith('image/')) {
-            // Handle image file
-            const imageUpload = document.getElementById('imageUpload');
-            if (imageUpload) {
-                const dt = new DataTransfer();
-                dt.items.add(file);
-                imageUpload.files = dt.files;
-                this.handleImageUpload({ target: { files: [file] } });
-            }
-        } else if (fileType.startsWith('audio/')) {
-            // Handle audio file
-            const audioUpload = document.getElementById('audioUpload');
-            if (audioUpload) {
-                const dt = new DataTransfer();
-                dt.items.add(file);
-                audioUpload.files = dt.files;
-                this.handleFileUpload({ target: { files: [file] } });
-            }
-        }
-    }
-
-    showResult(result) {
-        const resultSection = document.getElementById('resultSection');
-        if (!resultSection) return;
-
-        resultSection.innerHTML = `
-            <div class="alert alert-success">
-                <h5>Encoding Complete!</h5>
-                <p>Your audio file has been generated successfully.</p>
-                <a href="${result.download_url}" class="btn btn-primary" download>
-                    <i data-feather="download"></i> Download Audio
-                </a>
-            </div>
-        `;
-
-        resultSection.style.display = 'block';
-
-        // Refresh feather icons
-        if (typeof feather !== 'undefined') {
-            feather.replace();
-        }
-    }
-
-    showDecodeResult(result) {
-        const resultSection = document.getElementById('resultSection');
-        if (!resultSection) return;
-
-        if (result.type === 'text') {
-            resultSection.innerHTML = `
-                <div class="alert alert-success">
-                    <h5>Decoding Complete!</h5>
-                    <p><strong>Decoded text:</strong></p>
-                    <div class="bg-light p-3 rounded">
-                        <code>${result.decoded_text}</code>
-                    </div>
-                </div>
-            `;
-        } else if (result.type === 'image') {
-            resultSection.innerHTML = `
-                <div class="alert alert-success">
-                    <h5>Image Decoding Complete!</h5>
-                    <p>Decoded image (${result.width}x${result.height}):</p>
-                    <img src="${result.image_url}" alt="Decoded Image" class="img-fluid mb-3" style="max-width: 300px;">
-                    <br>
-                    <a href="${result.image_url}" class="btn btn-primary" download>
-                        <i data-feather="download"></i> Download Image
+    displayResult(type, data) {
+        const outputContainer = document.getElementById('outputContainer');
+        
+        if (type === 'audio') {
+            outputContainer.innerHTML = `
+                <div class="audio-result">
+                    <h6>Generated Audio</h6>
+                    <audio controls class="w-100 mb-3">
+                        <source src="${data.download_url}" type="audio/wav">
+                        Your browser does not support the audio element.
+                    </audio>
+                    <a href="${data.download_url}" class="btn btn-outline-primary btn-sm">
+                        <i data-feather="download" class="me-1"></i>
+                        Download
                     </a>
                 </div>
             `;
+        } else if (type === 'text') {
+            outputContainer.innerHTML = `
+                <div class="text-result">
+                    <h6>Decoded Text</h6>
+                    <div class="decoded-text p-3 border rounded">
+                        ${data.decoded_text}
+                    </div>
+                </div>
+            `;
         }
-
-        resultSection.style.display = 'block';
 
         // Refresh feather icons
         if (typeof feather !== 'undefined') {
@@ -391,69 +338,84 @@ class SonificationApp {
         }
     }
 
-    showAlert(message, type = 'info') {
-        const alertsContainer = document.getElementById('alertsContainer') || document.body;
-
-        const alertDiv = document.createElement('div');
-        alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
-        alertDiv.innerHTML = `
-            ${message}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        `;
-
-        alertsContainer.appendChild(alertDiv);
-
-        // Auto-remove after 5 seconds
-        setTimeout(() => {
-            if (alertDiv.parentNode) {
-                alertDiv.remove();
-            }
-        }, 5000);
-    }
-
     showLoading(show) {
-        const loadingOverlay = document.getElementById('loadingOverlay');
+        const loadingOverlay = document.getElementById('loading-overlay');
         if (loadingOverlay) {
             loadingOverlay.style.display = show ? 'flex' : 'none';
         }
     }
 
-    getFrequencyRange() {
-        return {
-            min: parseInt(document.getElementById('minFreq')?.value) || 800,
-            max: parseInt(document.getElementById('maxFreq')?.value) || 3000
-        };
+    showAlert(message, type = 'info') {
+        const toast = document.getElementById('toast');
+        const toastBody = toast.querySelector('.toast-body');
+        
+        toastBody.textContent = message;
+        
+        const bsToast = new bootstrap.Toast(toast);
+        bsToast.show();
     }
 
     updateFrequencyRange() {
-        const minFreq = document.getElementById('minFreq')?.value;
-        const maxFreq = document.getElementById('maxFreq')?.value;
+        const minFreq = parseInt(document.getElementById('minFreqRange').value);
+        const maxFreq = parseInt(document.getElementById('maxFreqRange').value);
+        
+        document.getElementById('minFreqValue').textContent = minFreq;
+        document.getElementById('maxFreqValue').textContent = maxFreq;
+    }
 
-        // Update frequency picker if exists
-        if (this.frequencyPicker) {
-            this.frequencyPicker.updateRange({ min: minFreq, max: maxFreq });
+    handleFileSelect(event) {
+        this.currentFile = event.target.files[0];
+    }
+
+    handleImageSelect(event) {
+        this.currentFile = event.target.files[0];
+    }
+
+    handleDroppedFile(file) {
+        // Handle dropped file based on type
+        if (file.type.startsWith('audio/')) {
+            document.getElementById('fileUpload').files = file;
+        } else if (file.type.startsWith('image/')) {
+            document.getElementById('imageUpload').files = file;
         }
+    }
 
-        // Update display
-        const minDisplay = document.getElementById('minFreqDisplay');
-        const maxDisplay = document.getElementById('maxFreqDisplay');
+    async startRecording() {
+        // Recording functionality would go here
+        this.showAlert('Recording feature coming soon!', 'info');
+    }
 
-        if (minDisplay) minDisplay.textContent = minFreq + ' Hz';
-        if (maxDisplay) maxDisplay.textContent = maxFreq + ' Hz';
+    stopRecording() {
+        // Stop recording functionality would go here
     }
 }
 
-// Utility functions
-function scrollToSection(sectionId) {
-    const section = document.getElementById(sectionId);
-    if (section) {
-        section.scrollIntoView({ behavior: 'smooth' });
+// Frequency presets
+function setFrequencyPreset(preset) {
+    let min, max;
+    
+    switch(preset) {
+        case 'bass':
+            min = 20;
+            max = 250;
+            break;
+        case 'mid':
+            min = 250;
+            max = 4000;
+            break;
+        case 'high':
+            min = 4000;
+            max = 20000;
+            break;
+        case 'full':
+            min = 20;
+            max = 20000;
+            break;
+        default:
+            min = 800;
+            max = 3000;
     }
-}
-
-function setFrequencyPreset(min, max) {
-    document.getElementById('minFreq').value = min;
-    document.getElementById('maxFreq').value = max;
+    
     document.getElementById('minFreqRange').value = min;
     document.getElementById('maxFreqRange').value = max;
 
