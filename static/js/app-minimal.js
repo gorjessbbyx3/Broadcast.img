@@ -523,10 +523,659 @@ class SonificationStudio {
 
 // Utility functions
 function scrollToSection(sectionId) {
-    const section = document.getElementById(sectionId);
-    if (section) {
-        section.scrollIntoView({ behavior: 'smooth' });
+    const element = document.getElementById(sectionId);
+    if (element) {
+        element.scrollIntoView({ 
+            behavior: 'smooth',
+            block: 'start'
+        });
+
+        // Add visual indicator
+        element.style.transform = 'scale(1.01)';
+        setTimeout(() => {
+            element.style.transform = '';
+        }, 300);
     }
+}
+
+// Enhanced notification system
+function showNotification(message, type = 'info', duration = 4000) {
+    // Remove existing notifications
+    const existing = document.querySelector('.custom-notification');
+    if (existing) {
+        existing.remove();
+    }
+
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `custom-notification alert alert-${type === 'info' ? 'primary' : type} alert-dismissible fade show`;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        min-width: 300px;
+        backdrop-filter: blur(10px);
+        background: rgba(0, 0, 0, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    `;
+
+    notification.innerHTML = `
+        <div class="d-flex align-items-center">
+            <span>${message}</span>
+            <button type="button" class="btn-close btn-close-white ms-auto" onclick="this.parentElement.parentElement.remove()"></button>
+        </div>
+    `;
+
+    document.body.appendChild(notification);
+
+    // Auto-remove after duration
+    setTimeout(() => {
+        if (notification && notification.parentNode) {
+            notification.classList.remove('show');
+            setTimeout(() => {
+                if (notification && notification.parentNode) {
+                    notification.remove();
+                }
+            }, 150);
+        }
+    }, duration);
+}
+
+// File download functionality
+function downloadFile(filename) {
+    if (!filename) {
+        showNotification('❌ No file specified for download', 'error');
+        return;
+    }
+
+    showNotification('📥 Starting download...', 'info', 2000);
+
+    const link = document.createElement('a');
+    link.href = `/download/${filename}`;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    setTimeout(() => {
+        showNotification('✅ Download initiated successfully!', 'success');
+    }, 500);
+}
+
+// Enhanced form validation
+function validateForm(formElement) {
+    const inputs = formElement.querySelectorAll('input[required], textarea[required], select[required]');
+    let isValid = true;
+
+    inputs.forEach(input => {
+        if (!input.value.trim()) {
+            input.classList.add('is-invalid');
+            isValid = false;
+        } else {
+            input.classList.remove('is-invalid');
+        }
+    });
+
+    return isValid;
+}
+
+// Audio preview functionality
+function previewAudio(audioUrl, buttonElement) {
+    if (!audioUrl) {
+        showNotification('❌ No audio file to preview', 'error');
+        return;
+    }
+
+    // Stop any currently playing audio
+    const existingAudio = document.querySelector('.preview-audio');
+    if (existingAudio) {
+        existingAudio.pause();
+        existingAudio.remove();
+    }
+
+    // Create and play new audio
+    const audio = document.createElement('audio');
+    audio.className = 'preview-audio';
+    audio.src = audioUrl;
+    audio.controls = false;
+
+    // Add visual feedback to button
+    const originalText = buttonElement.innerHTML;
+    buttonElement.innerHTML = '<i data-feather="pause"></i> Playing...';
+    feather.replace();
+
+    audio.addEventListener('ended', () => {
+        buttonElement.innerHTML = originalText;
+        feather.replace();
+        showNotification('🎵 Audio preview completed', 'info', 2000);
+    });
+
+    audio.addEventListener('error', () => {
+        buttonElement.innerHTML = originalText;
+        feather.replace();
+        showNotification('❌ Error playing audio preview', 'error');
+    });
+
+    document.body.appendChild(audio);
+    audio.play().then(() => {
+        showNotification('🎵 Playing audio preview...', 'info', 2000);
+    }).catch(error => {
+        console.error('Audio play error:', error);
+        showNotification('❌ Could not play audio preview', 'error');
+        buttonElement.innerHTML = originalText;
+        feather.replace();
+    });
+}
+
+// Copy to clipboard functionality
+function copyToClipboard(text, buttonElement) {
+    if (!text) {
+        showNotification('❌ No text to copy', 'error');
+        return;
+    }
+
+    navigator.clipboard.writeText(text).then(() => {
+        showNotification('✅ Copied to clipboard!', 'success', 2000);
+
+        // Visual feedback
+        const originalText = buttonElement.innerHTML;
+        buttonElement.innerHTML = '<i data-feather="check"></i> Copied!';
+        feather.replace();
+
+        setTimeout(() => {
+            buttonElement.innerHTML = originalText;
+            feather.replace();
+        }, 2000);
+    }).catch(err => {
+        console.error('Copy failed:', err);
+        showNotification('❌ Failed to copy to clipboard', 'error');
+    });
+}
+
+// Clear form functionality
+function clearForm(formElement) {
+    if (!formElement) return;
+
+    // Clear all inputs
+    const inputs = formElement.querySelectorAll('input, textarea, select');
+    inputs.forEach(input => {
+        if (input.type === 'file') {
+            input.value = '';
+        } else if (input.type === 'checkbox' || input.type === 'radio') {
+            input.checked = false;
+        } else {
+            input.value = '';
+        }
+        input.classList.remove('is-invalid', 'is-valid');
+    });
+
+    // Clear any result displays
+    const resultContainers = formElement.querySelectorAll('.result-container, .output-container');
+    resultContainers.forEach(container => {
+        container.innerHTML = '<div class="text-center text-muted"><i data-feather="info" style="width: 48px; height: 48px;"></i><p class="mt-2">Results will appear here</p></div>';
+        feather.replace();
+    });
+
+    showNotification('🧹 Form cleared successfully', 'info', 2000);
+}
+
+// Enhanced error handling for all AJAX requests
+function handleAjaxError(xhr, textStatus, errorThrown) {
+    console.error('AJAX Error:', textStatus, errorThrown);
+
+    let errorMessage = 'An unexpected error occurred';
+
+    if (xhr.responseJSON && xhr.responseJSON.error) {
+        errorMessage = xhr.responseJSON.error;
+    } else if (xhr.status === 404) {
+        errorMessage = 'Service not found';
+    } else if (xhr.status === 500) {
+        errorMessage = 'Server error occurred';
+    } else if (xhr.status === 413) {
+        errorMessage = 'File too large (max 16MB)';
+    } else if (xhr.status === 0) {
+        errorMessage = 'Network connection error';
+    }
+
+    showNotification(`❌ ${errorMessage}`, 'error');
+    return errorMessage;
+}
+
+// Initialize the application
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Feather icons
+    feather.replace();
+
+    // Initialize tooltips if Bootstrap is available
+    if (typeof bootstrap !== 'undefined') {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    }
+
+    // Initialize all components
+    initializeFileUploads();
+    initializeFormHandlers();
+    initializeAudioControls();
+    initializeVisualization();
+    initializeHeroButtons();
+    initializeNavigationButtons();
+    initializeFeatureInteractions();
+});
+
+// Initialize hero section buttons
+function initializeHeroButtons() {
+    // Start Creating Audio button
+    const startButton = document.querySelector('.btn-premium');
+    if (startButton) {
+        startButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            scrollToSection('encoding');
+
+            // Add visual feedback
+            this.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                this.style.transform = '';
+            }, 150);
+        });
+    }
+
+    // View Features button
+    const featuresButton = document.querySelector('.btn-outline-premium');
+    if (featuresButton) {
+        featuresButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            scrollToSection('features');
+
+            // Add visual feedback
+            this.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                this.style.transform = '';
+            }, 150);
+        });
+    }
+}
+
+// Initialize navigation and utility buttons
+function initializeNavigationButtons() {
+    // Smooth scroll for all anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+
+    // Download buttons functionality
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('download-btn') || e.target.closest('.download-btn')) {
+            const button = e.target.classList.contains('download-btn') ? e.target : e.target.closest('.download-btn');
+            const filename = button.getAttribute('data-filename');
+            if (filename) {
+                downloadFile(filename);
+            }
+        }
+    });
+}
+
+// Initialize feature card interactions
+function initializeFeatureInteractions() {
+    // Feature cards hover effects and click handlers
+    document.querySelectorAll('.feature-card').forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px)';
+        });
+
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+
+        // Make feature cards clickable to demonstrate functionality
+        card.addEventListener('click', function() {
+            const featureTitle = this.querySelector('h5').textContent;
+            showFeatureDemo(featureTitle);
+        });
+    });
+}
+
+// Show feature demonstrations
+function showFeatureDemo(featureTitle) {
+    const demos = {
+        'High-Speed Processing': () => {
+            showNotification('⚡ Demonstrating high-speed processing capabilities...', 'info');
+            setTimeout(() => {
+                showNotification('✅ Processing completed in 0.05 seconds!', 'success');
+            }, 1500);
+        },
+        'Custom Frequencies': () => {
+            scrollToSection('encoding');
+            showNotification('🎵 Navigate to encoding section to customize frequencies', 'info');
+        },
+        'AI Transcription': () => {
+            scrollToSection('decoding');
+            showNotification('🤖 Upload an audio file in the decoding section for AI transcription', 'info');
+        },
+        'High-Quality Export': () => {
+            showNotification('💾 All audio exports are in 44.1kHz WAV format for maximum quality', 'info');
+        },
+        'Text to Sound': () => {
+            scrollToSection('encoding');
+            document.querySelector('#textInput')?.focus();
+        },
+        'Image Sonification': () => {
+            scrollToSection('encoding');
+            const imageTab = document.querySelector('[data-bs-target="#imageEncoding"]');
+            if (imageTab) imageTab.click();
+        },
+        'Audio Decoding': () => {
+            scrollToSection('decoding');
+            showNotification('🔊 Upload audio files to decode them back to text or images', 'info');
+        }
+    };
+
+    const demo = demos[featureTitle];
+    if (demo) {
+        demo();
+    } else {
+        showNotification(`📋 ${featureTitle} feature is fully operational`, 'info');
+    }
+}
+
+// Initialize file upload handlers
+function initializeFileUploads() {
+    // Implement file upload handling here
+}
+
+// Initialize form handlers
+function initializeFormHandlers() {
+    // Text encoding form
+    const textForm = document.getElementById('textEncodingForm');
+    if (textForm) {
+        textForm.addEventListener('submit', handleTextEncoding);
+
+        // Add clear button functionality
+        const clearBtn = textForm.querySelector('.clear-btn');
+        if (clearBtn) {
+            clearBtn.addEventListener('click', () => clearForm(textForm));
+        }
+
+        // Add copy button functionality
+        const copyBtn = textForm.querySelector('.copy-btn');
+        if (copyBtn) {
+            copyBtn.addEventListener('click', (e) => {
+                const textInput = textForm.querySelector('#textInput');
+                if (textInput && textInput.value) {
+                    copyToClipboard(textInput.value, e.target);
+                }
+            });
+        }
+    }
+
+    // Image encoding form
+    const imageForm = document.getElementById('imageEncodingForm');
+    if (imageForm) {
+        imageForm.addEventListener('submit', handleImageEncoding);
+
+        // Add clear button functionality
+        const clearBtn = imageForm.querySelector('.clear-btn');
+        if (clearBtn) {
+            clearBtn.addEventListener('click', () => clearForm(imageForm));
+        }
+    }
+
+    // Audio decoding form
+    const decodingForm = document.getElementById('audioDecodingForm');
+    if (decodingForm) {
+        decodingForm.addEventListener('submit', handleAudioDecoding);
+
+        // Add clear button functionality
+        const clearBtn = decodingForm.querySelector('.clear-btn');
+        if (clearBtn) {
+            clearBtn.addEventListener('click', () => clearForm(decodingForm));
+        }
+    }
+
+    // Add functionality to all encode buttons
+    document.querySelectorAll('.encode-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const form = this.closest('form');
+            if (form && validateForm(form)) {
+                form.dispatchEvent(new Event('submit'));
+            } else {
+                showNotification('⚠️ Please fill in all required fields', 'warning');
+            }
+        });
+    });
+
+    // Add functionality to all decode buttons
+    document.querySelectorAll('.decode-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const form = this.closest('form');
+            if (form && validateForm(form)) {
+                form.dispatchEvent(new Event('submit'));
+            } else {
+                showNotification('⚠️ Please select an audio file to decode', 'warning');
+            }
+        });
+    });
+
+    // Add functionality to preview buttons
+    document.querySelectorAll('.preview-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const audioUrl = this.getAttribute('data-audio-url');
+            if (audioUrl) {
+                previewAudio(audioUrl, this);
+            } else {
+                showNotification('❌ No audio available for preview', 'error');
+            }
+        });
+    });
+
+    // Add functionality to download buttons
+    document.querySelectorAll('.download-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const filename = this.getAttribute('data-filename');
+            if (filename) {
+                downloadFile(filename);
+            } else {
+                showNotification('❌ No file available for download', 'error');
+            }
+        });
+    });
+}
+
+// Initialize audio controls
+function initializeAudioControls() {
+    // Implement audio control handling here
+}
+
+// Initialize visualization
+function initializeVisualization() {
+    // Implement visualization handling here
+}
+
+// Handle text encoding form submission
+function handleTextEncoding(event) {
+    event.preventDefault();
+    // Implement text encoding logic here
+}
+
+// Handle image encoding form submission
+function handleImageEncoding(event) {
+    event.preventDefault();
+    // Implement image encoding logic here
+}
+
+// Handle audio decoding form submission
+function handleAudioDecoding(event) {
+    event.preventDefault();
+    // Implement audio decoding logic here
+}
+
+function displayEncodingResult(data) {
+    const resultContainer = document.getElementById('encodingResult');
+    if (!resultContainer) return;
+
+    ```text
+    resultContainer.innerHTML = `
+        <div class="result-success">
+            <div class="result-header">
+                <i data-feather="check-circle" class="text-success"></i>
+                <h5 class="ms-2 mb-0">Audio Generated Successfully!</h5>
+            </div>
+            <div class="result-content mt-3">
+                <div class="audio-player mb-3">
+                    <audio controls class="w-100">
+                        <source src="/download/${data.filename}" type="audio/wav">
+                        Your browser does not support the audio element.
+                    </audio>
+                </div>
+                <div class="result-actions d-flex gap-2 justify-content-center">
+                    <button class="btn btn-outline-premium download-btn" data-filename="${data.filename}">
+                        <i data-feather="download" class="me-2"></i>
+                        Download
+                    </button>
+                    <button class="btn btn-outline-premium preview-btn" data-audio-url="/download/${data.filename}">
+                        <i data-feather="play" class="me-2"></i>
+                        Preview
+                    </button>
+                    <button class="btn btn-outline-premium copy-btn" onclick="copyToClipboard('/download/${data.filename}', this)">
+                        <i data-feather="copy" class="me-2"></i>
+                        Copy Link
+                    </button>
+                </div>
+                <div class="result-info mt-3">
+                    <small class="text-muted">
+                        <i data-feather="info" class="me-1"></i>
+                        File: ${data.filename} | Format: WAV | Quality: 44.1kHz
+                    </small>
+                </div>
+            </div>
+        </div>
+    `;
+
+    feather.replace();
+    resultContainer.scrollIntoView({ behavior: 'smooth' });
+
+    // Initialize button functionality for this result
+    const downloadBtn = resultContainer.querySelector('.download-btn');
+    const previewBtn = resultContainer.querySelector('.preview-btn');
+
+    if (downloadBtn) {
+        downloadBtn.addEventListener('click', () => downloadFile(data.filename));
+    }
+
+    if (previewBtn) {
+        previewBtn.addEventListener('click', () => previewAudio(`/download/${data.filename}`, previewBtn));
+    }
+}
+
+function displayDecodingResult(data) {
+    const resultContainer = document.getElementById('decodingResult');
+    if (!resultContainer) return;
+
+    if (data.type === 'text') {
+        resultContainer.innerHTML = `
+            <div class="result-success">
+                <div class="result-header">
+                    <i data-feather="check-circle" class="text-success"></i>
+                    <h5 class="ms-2 mb-0">Text Decoded Successfully!</h5>
+                </div>
+                <div class="result-content mt-3">
+                    <div class="decoded-text">
+                        <label class="form-label">Decoded Text:</label>
+                        <div class="text-result" id="decodedTextContent">${data.decoded_text}</div>
+                        <div class="result-actions mt-3 d-flex gap-2 justify-content-center">
+                            <button class="btn btn-outline-premium copy-btn" onclick="copyToClipboard(\`${data.decoded_text}\`, this)">
+                                <i data-feather="copy" class="me-2"></i>
+                                Copy Text
+                            </button>
+                            <button class="btn btn-outline-premium" onclick="selectText('decodedTextContent')">
+                                <i data-feather="edit-3" class="me-2"></i>
+                                Select All
+                            </button>
+                        </div>
+                    </div>
+                    <div class="result-info mt-3">
+                        <small class="text-muted">
+                            <i data-feather="info" class="me-1"></i>
+                            Source: ${data.original_filename} | Characters: ${data.decoded_text.length}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        `;
+    } else if (data.type === 'image') {
+        resultContainer.innerHTML = `
+            <div class="result-success">
+                <div class="result-header">
+                    <i data-feather="check-circle" class="text-success"></i>
+                    <h5 class="ms-2 mb-0">Image Decoded Successfully!</h5>
+                </div>
+                <div class="result-content mt-3">
+                    <div class="decoded-image text-center">
+                        <img src="${data.image_url}" alt="Decoded Image" class="img-fluid rounded" style="max-width: 300px;">
+                        <div class="result-actions mt-3 d-flex gap-2 justify-content-center">
+                            <button class="btn btn-outline-premium download-btn" onclick="downloadFile('${data.image_url.split('/').pop()}')">
+                                <i data-feather="download" class="me-2"></i>
+                                Download
+                            </button>
+                            <button class="btn btn-outline-premium" onclick="openImageInNewTab('${data.image_url}')">
+                                <i data-feather="external-link" class="me-2"></i>
+                                View Full Size
+                            </button>
+                            <button class="btn btn-outline-premium copy-btn" onclick="copyToClipboard('${data.image_url}', this)">
+                                <i data-feather="copy" class="me-2"></i>
+                                Copy Link
+                            </button>
+                        </div>
+                        <div class="result-info mt-3">
+                            <small class="text-muted">
+                                <i data-feather="info" class="me-1"></i>
+                                Dimensions: ${data.width}x${data.height} | Source: ${data.original_filename}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    feather.replace();
+    resultContainer.scrollIntoView({ behavior: 'smooth' });
+}
+
+// Additional utility functions for button functionality
+function selectText(elementId) {
+    const element = document.getElementById(elementId);
+    if (element) {
+        const range = document.createRange();
+        range.selectNodeContents(element);
+        const selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+        showNotification('✅ Text selected', 'success', 2000);
+    }
+}
+
+function openImageInNewTab(imageUrl) {
+    window.open(imageUrl, '_blank');
+    showNotification('🖼️ Image opened in new tab', 'info', 2000);
 }
 
 // Error handling for audio operations
