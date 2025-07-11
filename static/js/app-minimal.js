@@ -1,94 +1,218 @@
-// Sonification Studio - Minimal Application JavaScript
-// Fixed to avoid class syntax errors
-
 // Global variables
-let currentAudioUrl = null;
 let isProcessing = false;
+let currentAudioUrl = null;
 
 // Notification system
-function showNotification(message, type = 'info', duration = 5000) {
-    const notification = document.createElement('div');
-    notification.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show position-fixed`;
-    notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
-    notification.innerHTML = `
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    `;
+function showNotification(message, type = 'info', duration = 3000) {
+    const toastContainer = document.querySelector('.toast-container');
+    if (!toastContainer) return;
 
-    document.body.appendChild(notification);
+    const toast = document.getElementById('toast');
+    const toastBody = toast.querySelector('.toast-body');
+
+    toastBody.textContent = message;
+    toast.className = `toast text-bg-${type}`;
+
+    const toastBootstrap = new bootstrap.Toast(toast);
+    toastBootstrap.show();
 
     setTimeout(() => {
-        if (notification.parentNode) {
-            notification.parentNode.removeChild(notification);
-        }
+        toastBootstrap.hide();
     }, duration);
 }
 
-// Scroll to section function
-function scrollToSection(sectionId) {
-    const element = document.getElementById(sectionId);
-    if (element) {
-        element.scrollIntoView({
-            behavior: 'smooth',
-            block: 'start'
-        });
+// Event listeners setup
+function setupEventListeners() {
+    // Generate button
+    const generateBtn = document.getElementById('generateBtn');
+    if (generateBtn) {
+        generateBtn.addEventListener('click', handleGenerate);
+    }
+
+    // Decode button
+    const decodeBtn = document.getElementById('decodeBtn');
+    if (decodeBtn) {
+        decodeBtn.addEventListener('click', decodeAudio);
+    }
+
+    // Input mode radio buttons
+    const inputModes = document.querySelectorAll('input[name="inputMode"]');
+    inputModes.forEach(radio => {
+        radio.addEventListener('change', handleInputModeChange);
+    });
+
+    // Text input character counter
+    const textInput = document.getElementById('textInput');
+    if (textInput) {
+        textInput.addEventListener('input', updateCharCount);
+    }
+
+    // Frequency inputs
+    const minFreq = document.getElementById('minFreq');
+    const maxFreq = document.getElementById('maxFreq');
+    if (minFreq) minFreq.addEventListener('change', validateFrequency);
+    if (maxFreq) maxFreq.addEventListener('change', validateFrequency);
+}
+
+// File upload handlers
+function setupFileUploads() {
+    // Image upload
+    const imageUploadZone = document.getElementById('imageUploadZone');
+    const imageFileInput = document.getElementById('imageFileInput');
+
+    if (imageUploadZone && imageFileInput) {
+        imageUploadZone.addEventListener('click', () => imageFileInput.click());
+        imageUploadZone.addEventListener('dragover', handleDragOver);
+        imageUploadZone.addEventListener('drop', handleImageDrop);
+        imageFileInput.addEventListener('change', handleImageSelect);
+    }
+
+    // Audio upload
+    const audioUploadZone = document.getElementById('audioUploadZone');
+    const audioFileInput = document.getElementById('audioFileInput');
+
+    if (audioUploadZone && audioFileInput) {
+        audioUploadZone.addEventListener('click', () => audioFileInput.click());
+        audioUploadZone.addEventListener('dragover', handleDragOver);
+        audioUploadZone.addEventListener('drop', handleAudioDrop);
+        audioFileInput.addEventListener('change', handleAudioSelect);
     }
 }
 
-// Frequency preset function
-function setFrequencyPreset(min, max) {
+// Input mode handling
+function handleInputModeChange(event) {
+    const textSection = document.getElementById('textInputSection');
+    const imageSection = document.getElementById('imageInputSection');
+
+    if (event.target.value === 'text') {
+        textSection.style.display = 'block';
+        imageSection.style.display = 'none';
+    } else {
+        textSection.style.display = 'none';
+        imageSection.style.display = 'block';
+    }
+}
+
+// Character count update
+function updateCharCount() {
+    const textInput = document.getElementById('textInput');
+    const charCount = document.getElementById('charCount');
+    if (textInput && charCount) {
+        charCount.textContent = textInput.value.length;
+    }
+}
+
+// Frequency validation
+function validateFrequency() {
+    const minFreq = parseInt(document.getElementById('minFreq').value);
+    const maxFreq = parseInt(document.getElementById('maxFreq').value);
+
+    if (minFreq >= maxFreq) {
+        showNotification('⚠️ Min frequency must be less than max frequency', 'warning');
+        document.getElementById('minFreq').value = 800;
+        document.getElementById('maxFreq').value = 3000;
+    }
+}
+
+// Frequency presets
+function setFrequencyRange(min, max) {
     const minFreq = document.getElementById('minFreq');
     const maxFreq = document.getElementById('maxFreq');
-    const minDisplay = document.getElementById('minFreqDisplay');
-    const maxDisplay = document.getElementById('maxFreqDisplay');
 
     if (minFreq) minFreq.value = min;
     if (maxFreq) maxFreq.value = max;
-    if (minDisplay) minDisplay.textContent = min + ' Hz';
-    if (maxDisplay) maxDisplay.textContent = max + ' Hz';
 
     showNotification(`🎵 Frequency set: ${min}-${max}Hz`, 'info', 2000);
 }
 
-// File upload handlers
-function handleTextFileUpload(file) {
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const textInput = document.getElementById('textInput');
-        if (textInput) {
-            textInput.value = e.target.result;
-            showNotification('📝 Text file loaded', 'success', 2000);
-        }
-    };
-    reader.readAsText(file);
+// Drag and drop handlers
+function handleDragOver(event) {
+    event.preventDefault();
+    event.currentTarget.classList.add('drag-over');
 }
 
-function handleImageFileUpload(file) {
-    if (!file) return;
+function handleImageDrop(event) {
+    event.preventDefault();
+    event.currentTarget.classList.remove('drag-over');
 
-    if (!file.type.startsWith('image/')) {
-        showNotification('❌ Please select a valid image file', 'error');
-        return;
+    const files = event.dataTransfer.files;
+    if (files.length > 0) {
+        const file = files[0];
+        if (file.type.startsWith('image/')) {
+            handleImageFile(file);
+        } else {
+            showNotification('❌ Please upload a valid image file', 'error');
+        }
+    }
+}
+
+function handleAudioDrop(event) {
+    event.preventDefault();
+    event.currentTarget.classList.remove('drag-over');
+
+    const files = event.dataTransfer.files;
+    if (files.length > 0) {
+        const file = files[0];
+        if (file.type.startsWith('audio/')) {
+            handleAudioFile(file);
+        } else {
+            showNotification('❌ Please upload a valid audio file', 'error');
+        }
+    }
+}
+
+function handleImageSelect(event) {
+    const file = event.target.files[0];
+    if (file) {
+        handleImageFile(file);
+    }
+}
+
+function handleAudioSelect(event) {
+    const file = event.target.files[0];
+    if (file) {
+        handleAudioFile(file);
+    }
+}
+
+function handleImageFile(file) {
+    const preview = document.getElementById('imagePreview');
+    const previewImg = document.getElementById('previewImg');
+    const imageInfo = document.getElementById('imageInfo');
+
+    if (preview && previewImg && imageInfo) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            previewImg.src = e.target.result;
+            imageInfo.textContent = `${file.name} (${(file.size/1024).toFixed(1)} KB)`;
+            preview.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
     }
 
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const preview = document.getElementById('imagePreview');
-        const img = document.getElementById('previewImg');
-        const btn = document.getElementById('encodeImageBtn');
-
-        if (img) img.src = e.target.result;
-        if (preview) preview.style.display = 'block';
-        if (btn) btn.disabled = false;
-
-        showNotification('🖼️ Image loaded', 'success', 2000);
-    };
-    reader.readAsDataURL(file);
+    showNotification('📷 Image uploaded successfully', 'success', 2000);
 }
 
-// Audio processing functions
+function handleAudioFile(file) {
+    const decodeBtn = document.getElementById('decodeBtn');
+    if (decodeBtn) {
+        decodeBtn.disabled = false;
+    }
+    showNotification('🎵 Audio file ready for decoding', 'success', 2000);
+}
+
+// Main generation handler
+function handleGenerate() {
+    const inputMode = document.querySelector('input[name="inputMode"]:checked').value;
+
+    if (inputMode === 'text') {
+        encodeText();
+    } else {
+        encodeImage();
+    }
+}
+
+// Encoding functions
 function encodeText() {
     const textInput = document.getElementById('textInput');
     if (!textInput || !textInput.value.trim()) {
@@ -97,7 +221,7 @@ function encodeText() {
     }
 
     const formData = new FormData();
-    formData.append('text', textInput.value.trim());
+    formData.append('text', textInput.value);
     formData.append('min_freq', document.getElementById('minFreq')?.value || '800');
     formData.append('max_freq', document.getElementById('maxFreq')?.value || '3000');
 
@@ -120,7 +244,7 @@ function encodeImage() {
 }
 
 function decodeAudio() {
-    const fileInput = document.getElementById('audioUpload');
+    const fileInput = document.getElementById('audioFileInput');
     if (!fileInput || !fileInput.files[0]) {
         showNotification('❌ Please select an audio file', 'warning');
         return;
@@ -137,7 +261,7 @@ function makeAudioRequest(url, formData, operation) {
     if (isProcessing) return;
 
     isProcessing = true;
-    const btn = event.target;
+    const btn = document.getElementById('generateBtn');
     const originalText = btn.innerHTML;
 
     btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Processing...';
@@ -171,7 +295,7 @@ function makeDecodeRequest(url, formData, operation) {
     if (isProcessing) return;
 
     isProcessing = true;
-    const btn = event.target;
+    const btn = document.getElementById('decodeBtn');
     const originalText = btn.innerHTML;
 
     btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Processing...';
@@ -203,10 +327,12 @@ function makeDecodeRequest(url, formData, operation) {
 
 // Audio player functions
 function loadAudioPlayer(audioUrl) {
+    const resultSection = document.getElementById('encodingResult');
     const player = document.getElementById('audioPlayer');
     const placeholder = document.getElementById('audioPlaceholder');
     const controls = document.getElementById('audioControls');
 
+    if (resultSection) resultSection.style.display = 'block';
     if (player) {
         player.src = audioUrl;
         player.style.display = 'block';
@@ -249,8 +375,94 @@ function clearAudio() {
 
 function displayResult(result) {
     const container = document.getElementById('resultContainer');
-    if (container) {
-        container.innerHTML = `<div class="text-result">${result}</div>`;
+    const decodedResults = document.getElementById('decodedResults');
+
+    if (container && decodedResults) {
+        container.innerHTML = `<div class="text-result p-3 bg-dark rounded">${result}</div>`;
+        decodedResults.style.display = 'block';
+    }
+}
+
+// Workspace functions
+function resetWorkspace() {
+    document.getElementById('textInput').value = '';
+    document.getElementById('imageFileInput').value = '';
+    document.getElementById('audioFileInput').value = '';
+    updateCharCount();
+    clearAudio();
+
+    const imagePreview = document.getElementById('imagePreview');
+    const decodedResults = document.getElementById('decodedResults');
+    const encodingResult = document.getElementById('encodingResult');
+
+    if (imagePreview) imagePreview.style.display = 'none';
+    if (decodedResults) decodedResults.style.display = 'none';
+    if (encodingResult) encodingResult.style.display = 'none';
+
+    showNotification('🧹 Workspace reset', 'info', 2000);
+}
+
+function clearAllInputs() {
+    resetWorkspace();
+}
+
+function downloadLastFile() {
+    downloadAudio();
+}
+
+function showSettings() {
+    showNotification('⚙️ Settings panel coming soon', 'info');
+}
+
+function showHelp() {
+    showNotification('❓ Help documentation available in the docs', 'info');
+}
+
+// Real-time visualizations
+function initializeVisualizations() {
+    const waveformCanvas = document.getElementById('realtimeWaveform');
+    const spectrumCanvas = document.getElementById('spectrumAnalyzer');
+
+    if (waveformCanvas) {
+        const ctx = waveformCanvas.getContext('2d');
+        drawWaveform(ctx, waveformCanvas.width, waveformCanvas.height);
+    }
+
+    if (spectrumCanvas) {
+        const ctx = spectrumCanvas.getContext('2d');
+        drawSpectrum(ctx, spectrumCanvas.width, spectrumCanvas.height);
+    }
+}
+
+function drawWaveform(ctx, width, height) {
+    ctx.fillStyle = '#1a1a1a';
+    ctx.fillRect(0, 0, width, height);
+
+    ctx.strokeStyle = '#00ff41';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+
+    for (let x = 0; x < width; x++) {
+        const y = height / 2 + Math.sin(x * 0.1 + Date.now() * 0.01) * 20;
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+    }
+
+    ctx.stroke();
+}
+
+function drawSpectrum(ctx, width, height) {
+    ctx.fillStyle = '#1a1a1a';
+    ctx.fillRect(0, 0, width, height);
+
+    ctx.fillStyle = '#00ff41';
+
+    for (let i = 0; i < 50; i++) {
+        const barHeight = Math.random() * height * 0.8;
+        const x = (i / 50) * width;
+        const barWidth = width / 50 - 1;
+
+        ctx.fillRect(x, height - barHeight, barWidth, barHeight);
     }
 }
 
@@ -262,97 +474,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Setup event listeners
     setupEventListeners();
     setupFileUploads();
-    setupFrequencyControls();
 
-    showNotification('🎵 Sonification Studio ready!', 'info', 3000);
+    // Initialize visualizations
+    initializeVisualizations();
+    setInterval(initializeVisualizations, 100);
+
+    showNotification('🎵 Sonification Studio Ready', 'success', 3000);
 });
-
-function setupEventListeners() {
-    // Text encoding button
-    const encodeTextBtn = document.getElementById('encodeTextBtn');
-    if (encodeTextBtn) {
-        encodeTextBtn.addEventListener('click', encodeText);
-    }
-
-    // Image encoding button
-    const encodeImageBtn = document.getElementById('encodeImageBtn');
-    if (encodeImageBtn) {
-        encodeImageBtn.addEventListener('click', encodeImage);
-    }
-
-    // Decode button
-    const decodeBtn = document.getElementById('decodeBtn');
-    if (decodeBtn) {
-        decodeBtn.addEventListener('click', decodeAudio);
-    }
-
-    // Audio control buttons
-    const downloadBtn = document.getElementById('downloadBtn');
-    if (downloadBtn) {
-        downloadBtn.addEventListener('click', downloadAudio);
-    }
-
-    const clearAudioBtn = document.getElementById('clearAudioBtn');
-    if (clearAudioBtn) {
-        clearAudioBtn.addEventListener('click', clearAudio);
-    }
-}
-
-function setupFileUploads() {
-    // Text file input
-    const textFileInput = document.getElementById('textFileInput');
-    if (textFileInput) {
-        textFileInput.addEventListener('change', function(e) {
-            handleTextFileUpload(e.target.files[0]);
-        });
-    }
-
-    // Image upload zone
-    const imageUploadZone = document.getElementById('imageUploadZone');
-    const imageFileInput = document.getElementById('imageFileInput');
-
-    if (imageUploadZone && imageFileInput) {
-        imageUploadZone.addEventListener('click', function() {
-            imageFileInput.click();
-        });
-
-        imageFileInput.addEventListener('change', function(e) {
-            handleImageFileUpload(e.target.files[0]);
-        });
-
-        // Drag and drop for image upload
-        imageUploadZone.addEventListener('dragover', function(e) {
-            e.preventDefault();
-            imageUploadZone.classList.add('dragover');
-        });
-
-        imageUploadZone.addEventListener('dragleave', function() {
-            imageUploadZone.classList.remove('dragover');
-        });
-
-        imageUploadZone.addEventListener('drop', function(e) {
-            e.preventDefault();
-            imageUploadZone.classList.remove('dragover');
-            handleImageFileUpload(e.dataTransfer.files[0]);
-        });
-    }
-}
-
-function setupFrequencyControls() {
-    const minFreq = document.getElementById('minFreq');
-    const maxFreq = document.getElementById('maxFreq');
-    const minDisplay = document.getElementById('minFreqDisplay');
-    const maxDisplay = document.getElementById('maxFreqDisplay');
-
-    if (minFreq && minDisplay) {
-        minFreq.addEventListener('input', function(e) {
-            minDisplay.textContent = e.target.value + ' Hz';
-        });
-    }
-
-    if (maxFreq && maxDisplay) {
-        maxFreq.addEventListener('input', function(e) {
-            maxDisplay.textContent = e.target.value + ' Hz';
-        });
-    }
-}
