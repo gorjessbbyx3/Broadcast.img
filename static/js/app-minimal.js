@@ -389,7 +389,7 @@ class SonificationStudio {
     }
 
     displayAudioResult(result) {
-        const resultSection = document.getElementById('resultSection');
+        const resultSection = document.getElementById('encodingResult');
         if (!resultSection) return;
 
         resultSection.innerHTML = `
@@ -423,28 +423,30 @@ class SonificationStudio {
         const decodedResults = document.getElementById('decodedResults');
         if (!decodedResults) return;
 
+        const resultContent = decodedResults.querySelector('.result-content');
+        if (!resultContent) return;
+
         if (result.type === 'text') {
-            decodedResults.innerHTML = `
+            resultContent.innerHTML = `
                 <div class="decoded-text">
-                    <h6>Decoded Text:</h6>
-                    <div class="text-result">${result.content}</div>
+                    <div class="text-result p-2 bg-light rounded">${result.content}</div>
                 </div>
             `;
         } else if (result.type === 'image') {
-            decodedResults.innerHTML = `
-                <div class="decoded-image">
-                    <h6>Decoded Image:</h6>
-                    <img src="${result.image_url}" class="img-fluid rounded" alt="Decoded Image">
+            resultContent.innerHTML = `
+                <div class="decoded-image text-center">
+                    <img src="${result.image_url}" class="img-fluid rounded" alt="Decoded Image" style="max-height: 200px;">
                 </div>
             `;
         } else if (result.type === 'transcription') {
-            decodedResults.innerHTML = `
+            resultContent.innerHTML = `
                 <div class="transcription">
-                    <h6>Transcription:</h6>
-                    <div class="text-result">${result.content}</div>
+                    <div class="text-result p-2 bg-light rounded">${result.content}</div>
                 </div>
             `;
         }
+
+        decodedResults.style.display = 'block';
     }
 
     showError(message) {
