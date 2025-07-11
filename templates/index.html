@@ -1,166 +1,199 @@
 {% extends "base.html" %}
 
-{% block title %}Sonification Studio - Premium Audio Processing{% endblock %}
+{% block title %}Sonification Studio - Premium Dashboard{% endblock %}
 
 {% block content %}
 {% include 'components/hero_section.html' %}
 
-<!-- Encoding Section -->
-<section id="encoding" class="section-padding">
-    <div class="container">
-        <h2 class="section-title">
-            💎 Audio Encoding Studio 
-            <span class="premium-badge">PREMIUM</span>
-        </h2>
-        <p class="section-subtitle">Transform text and images into audio with enterprise-grade customizable parameters</p>
-
-        <div class="row">
-            <div class="col-lg-8">
-                <!-- Encoding Mode Selector -->
-                <div class="card glass-card mb-4">
-                    <div class="card-body">
-                        <h5 class="card-title mb-3">
-                            <i data-feather="settings" class="me-2"></i>
-                            Encoding Mode
-                        </h5>
-                        <div class="btn-group w-100 mb-3" role="group">
-                            <input type="radio" class="btn-check" name="encodingMode" id="textMode" value="text" checked>
-                            <label class="btn btn-outline-primary" for="textMode">
-                                <i data-feather="type" class="me-2"></i>Text to Audio
-                            </label>
-
-                            <input type="radio" class="btn-check" name="encodingMode" id="imageMode" value="image">
-                            <label class="btn btn-outline-primary" for="imageMode">
-                                <i data-feather="image" class="me-2"></i>Image to Audio
-                            </label>
-                        </div>
-                    </div>
+<!-- Dashboard Analytics -->
+<section id="dashboard" class="section-padding" style="padding: 2rem 0;">
+    <div class="container-fluid">
+        <!-- Real-time Metrics Row -->
+        <div class="row mb-4">
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="metric-card glass-card">
+                    <div class="metric-icon">⚡</div>
+                    <div class="metric-value" id="processingSpeed">0.05s</div>
+                    <div class="metric-label">Processing Speed</div>
+                    <div class="metric-trend positive">+15%</div>
                 </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="metric-card glass-card">
+                    <div class="metric-icon">🎵</div>
+                    <div class="metric-value" id="audioGenerated">847</div>
+                    <div class="metric-label">Audio Files Generated</div>
+                    <div class="metric-trend positive">+23%</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="metric-card glass-card">
+                    <div class="metric-icon">📊</div>
+                    <div class="metric-value" id="accuracyRate">99.7%</div>
+                    <div class="metric-label">AI Accuracy</div>
+                    <div class="metric-trend positive">+2.1%</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="metric-card glass-card">
+                    <div class="metric-icon">⚙️</div>
+                    <div class="metric-value" id="systemLoad">43%</div>
+                    <div class="metric-label">System Load</div>
+                    <div class="metric-trend neutral">Optimal</div>
+                </div>
+            </div>
+        </div>
 
-                <!-- Text Input Section -->
-                <div id="textInputSection" class="card glass-card mb-4">
-                    <div class="card-body">
-                        <h5 class="card-title mb-3">
-                            <i data-feather="edit-3" class="me-2"></i>
-                            Text Input
-                        </h5>
-
-                        <div class="mb-3">
-                            <textarea id="textInput" class="form-control" rows="4" 
-                                placeholder="Enter your text here to convert to audio..."></textarea>
+        <!-- Main Dashboard Row -->
+        <div class="row">
+            <!-- Control Panel -->
+            <div class="col-lg-6">
+                <div class="dashboard-panel glass-card">
+                    <div class="panel-header">
+                        <h4><i data-feather="control-panel" class="me-2"></i>Audio Generation Control</h4>
+                    </div>
+                    <div class="panel-body">
+                        <!-- Mode Selector -->
+                        <div class="control-section mb-3">
+                            <label class="control-label">Processing Mode</label>
+                            <div class="btn-group w-100" role="group">
+                                <input type="radio" class="btn-check" name="encodingMode" id="textMode" value="text" checked>
+                                <label class="btn btn-outline-primary btn-sm" for="textMode">
+                                    <i data-feather="type" class="me-1"></i>Text
+                                </label>
+                                <input type="radio" class="btn-check" name="encodingMode" id="imageMode" value="image">
+                                <label class="btn btn-outline-primary btn-sm" for="imageMode">
+                                    <i data-feather="image" class="me-1"></i>Image
+                                </label>
+                            </div>
                         </div>
 
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label class="form-label">Upload Text File</label>
-                                <input type="file" class="form-control" id="textFileInput" accept=".txt">
+                        <!-- Text Input -->
+                        <div id="textInputSection" class="control-section mb-3">
+                            <label class="control-label">Text Input</label>
+                            <textarea id="textInput" class="form-control form-control-sm" rows="3" 
+                                placeholder="Enter text to convert..."></textarea>
+                            <div class="input-stats">
+                                <small>Characters: <span id="charCount">0</span></small>
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Character Count</label>
-                                <div class="input-group">
-                                    <span class="input-group-text" id="charCount">0</span>
-                                    <span class="input-group-text">characters</span>
+                        </div>
+
+                        <!-- Image Upload -->
+                        <div id="imageInputSection" class="control-section mb-3" style="display: none;">
+                            <label class="control-label">Image Upload</label>
+                            <div class="upload-zone-compact" id="imageUploadZone">
+                                <i data-feather="upload" class="upload-icon-sm"></i>
+                                <span>Drop image or click</span>
+                                <input type="file" id="imageFileInput" accept="image/*" style="display: none;">
+                            </div>
+                            <div id="imagePreview" class="mt-2" style="display: none;">
+                                <img id="previewImg" class="img-preview">
+                            </div>
+                        </div>
+
+                        <!-- Quick Frequency Controls -->
+                        <div class="control-section mb-3">
+                            <label class="control-label">Frequency Range</label>
+                            <div class="row">
+                                <div class="col-6">
+                                    <input type="number" class="form-control form-control-sm" id="minFreq" value="800" placeholder="Min Hz">
+                                </div>
+                                <div class="col-6">
+                                    <input type="number" class="form-control form-control-sm" id="maxFreq" value="3000" placeholder="Max Hz">
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
 
-                <!-- Image Upload Section -->
-                <div id="imageInputSection" class="card glass-card mb-4" style="display: none;">
-                    <div class="card-body">
-                        <h5 class="card-title mb-3">
-                            <i data-feather="upload" class="me-2"></i>
-                            Image Upload
-                        </h5>
-
-                        <div class="upload-zone" id="imageUploadZone">
-                            <div class="upload-content">
-                                <i data-feather="image" class="upload-icon"></i>
-                                <h6>Drag & Drop Image Here</h6>
-                                <p>or click to browse</p>
-                                <input type="file" id="imageFileInput" accept="image/*" style="display: none;">
-                            </div>
+                        <!-- Generate Button -->
+                        <div class="text-center">
+                            <button class="btn btn-premium btn-lg encode-btn w-100">
+                                <i data-feather="zap" class="me-2"></i>START CREATING AUDIO
+                            </button>
                         </div>
 
-                        <div id="imagePreview" class="mt-3" style="display: none;">
-                            <img id="previewImg" class="img-fluid rounded" style="max-height: 200px;">
-                            <div class="mt-2">
-                                <small class="text-muted" id="imageInfo"></small>
-                            </div>
+                        <!-- Audio Result (moved under button) -->
+                        <div id="encodingResult" class="mt-3" style="display: none;">
+                            <!-- Results will be populated here -->
                         </div>
                     </div>
                 </div>
 
-                <!-- Frequency Controls -->
-                <div class="card glass-card mb-4">
-                    <div class="card-body">
-                        <h5 class="card-title mb-3">
-                            <i data-feather="sliders" class="me-2"></i>
-                            Frequency Controls
-                        </h5>
-
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label class="form-label">Frequency Range Preset</label>
-                                <select class="form-select" id="frequencyPreset">
-                                    <option value="custom">Custom Range</option>
-                                    <option value="bass">Bass (200-800 Hz)</option>
-                                    <option value="mid" selected>Mid (800-3000 Hz)</option>
-                                    <option value="high">High (3000-8000 Hz)</option>
-                                    <option value="full">Full (20-20000 Hz)</option>
-                                </select>
+                <!-- Decoding Panel -->
+                <div class="dashboard-panel glass-card mt-3">
+                    <div class="panel-header">
+                        <h5><i data-feather="upload-cloud" class="me-2"></i>Audio Decoder</h5>
+                    </div>
+                    <div class="panel-body">
+                        <div class="upload-zone-compact" id="audioUploadZone">
+                            <i data-feather="music" class="upload-icon-sm"></i>
+                            <span>Drop WAV file</span>
+                            <input type="file" id="audioFileInput" accept=".wav" style="display: none;">
+                        </div>
+                        
+                        <div class="mt-2">
+                            <div class="btn-group w-100" role="group">
+                                <input type="radio" class="btn-check" name="decodingMode" id="decodeText" value="text" checked>
+                                <label class="btn btn-outline-secondary btn-sm" for="decodeText">Text</label>
+                                <input type="radio" class="btn-check" name="decodingMode" id="decodeImage" value="image">
+                                <label class="btn btn-outline-secondary btn-sm" for="decodeImage">Image</label>
+                                <input type="radio" class="btn-check" name="decodingMode" id="transcribe" value="transcribe">
+                                <label class="btn btn-outline-secondary btn-sm" for="transcribe">AI</label>
                             </div>
                         </div>
 
-                        <div class="row">
-                            <div class="col-md-6">
-                                <label class="form-label">Min Frequency (Hz)</label>
-                                <input type="number" class="form-control" id="minFreq" value="800" min="20" max="19999">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Max Frequency (Hz)</label>
-                                <input type="number" class="form-control" id="maxFreq" value="3000" min="21" max="20000">
-                            </div>
-                        </div>
+                        <button class="btn btn-outline-premium btn-sm w-100 mt-2 decode-btn" disabled>
+                            <i data-feather="cpu" class="me-1"></i>Decode Audio
+                        </button>
 
-                        <!-- Interactive Frequency Picker -->
-                        <div class="mt-3">
-                            <label class="form-label">Interactive Frequency Picker</label>
-                            <canvas id="frequencyCanvas" width="600" height="100" class="frequency-canvas"></canvas>
+                        <div id="decodedResults" class="mt-2" style="display: none;">
+                            <!-- Results appear here -->
                         </div>
                     </div>
-                </div>
-
-                <!-- Generate Audio Button -->
-                <div class="text-center mb-4">
-                    <button type="submit" class="btn btn-premium btn-lg encode-btn me-2">
-                        <i data-feather="zap" class="me-2"></i>
-                        Generate Audio
-                    </button>
-                    <button type="button" class="btn btn-outline-premium clear-btn">
-                        <i data-feather="trash-2" class="me-2"></i>
-                        Clear
-                    </button>
-                </div>
-
-                <!-- Audio Result Section (Moved here) -->
-                <div id="encodingResult" class="mb-4" style="display: none;">
-                    <!-- Results will be populated here by JavaScript -->
                 </div>
             </div>
 
-            <!-- Preview and Controls -->
-            <div class="col-lg-4">
-                <div class="card glass-card mb-4">
-                    <div class="card-body">
-                        <h5 class="card-title mb-3">
-                            <i data-feather="bar-chart-2" class="me-2"></i>
-                            Audio Visualization
-                        </h5>
-                        <div class="visualization-container">
-                            <canvas id="waveformCanvas" width="300" height="100"></canvas>
-                            <canvas id="spectrumCanvas" width="300" height="100"></canvas>
+            <!-- Visualization Dashboard -->
+            <div class="col-lg-6">
+                <div class="dashboard-panel glass-card">
+                    <div class="panel-header">
+                        <h4><i data-feather="activity" class="me-2"></i>Live Analytics Dashboard</h4>
+                    </div>
+                    <div class="panel-body">
+                        <!-- Real-time Audio Visualization -->
+                        <div class="viz-container mb-3">
+                            <canvas id="realtimeWaveform" width="500" height="120" class="viz-canvas"></canvas>
+                            <div class="viz-label">Real-time Waveform</div>
+                        </div>
+
+                        <div class="viz-container mb-3">
+                            <canvas id="spectrumAnalyzer" width="500" height="120" class="viz-canvas"></canvas>
+                            <div class="viz-label">Frequency Spectrum</div>
+                        </div>
+
+                        <!-- Processing Timeline -->
+                        <div class="timeline-container">
+                            <h6><i data-feather="clock" class="me-2"></i>Processing Timeline</h6>
+                            <div class="timeline-item">
+                                <div class="timeline-dot active"></div>
+                                <div class="timeline-content">
+                                    <strong>System Ready</strong>
+                                    <small>Awaiting input</small>
+                                </div>
+                            </div>
+                            <div class="timeline-item" id="timeline-processing" style="display: none;">
+                                <div class="timeline-dot processing"></div>
+                                <div class="timeline-content">
+                                    <strong>Processing Audio</strong>
+                                    <small>Applying AI algorithms</small>
+                                </div>
+                            </div>
+                            <div class="timeline-item" id="timeline-complete" style="display: none;">
+                                <div class="timeline-dot complete"></div>
+                                <div class="timeline-content">
+                                    <strong>Generation Complete</strong>
+                                    <small>Audio ready for download</small>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

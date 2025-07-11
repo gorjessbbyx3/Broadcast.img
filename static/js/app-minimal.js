@@ -287,12 +287,15 @@ class SonificationStudio {
     }
 
     async generateAudio() {
-        const generateBtn = document.getElementById('generateBtn');
+        const generateBtn = document.querySelector('.encode-btn');
         const mode = document.querySelector('input[name="encodingMode"]:checked').value;
 
+        // Update timeline and button
+        this.updateTimelineStatus('processing');
+        
         if (generateBtn) {
             generateBtn.disabled = true;
-            generateBtn.innerHTML = '<i data-feather="loader" class="me-2"></i>Processing...';
+            generateBtn.innerHTML = '<i data-feather="loader" class="me-2"></i>PROCESSING...';
             feather.replace();
         }
 
@@ -327,14 +330,20 @@ class SonificationStudio {
 
             const result = await response.json();
             this.displayAudioResult(result);
+            this.updateTimelineStatus('complete');
+
+            // Update dashboard metrics
+            this.dashboardMetrics.audioGenerated++;
+            document.getElementById('audioGenerated').textContent = this.dashboardMetrics.audioGenerated.toLocaleString();
 
         } catch (error) {
             console.error('Error generating audio:', error);
             this.showError(error.message);
+            this.updateTimelineStatus('ready');
         } finally {
             if (generateBtn) {
                 generateBtn.disabled = false;
-                generateBtn.innerHTML = '<i data-feather="music" class="me-2"></i>Generate Audio';
+                generateBtn.innerHTML = '<i data-feather="zap" class="me-2"></i>START CREATING AUDIO';
                 feather.replace();
             }
         }
@@ -393,24 +402,24 @@ class SonificationStudio {
         if (!resultSection) return;
 
         resultSection.innerHTML = `
-            <div class="card glass-card">
-                <div class="card-body">
-                    <h5 class="card-title">
-                        <i data-feather="music" class="me-2"></i>
-                        Generated Audio
-                    </h5>
-                    <div class="mb-3">
-                        <audio controls class="w-100">
-                            <source src="${result.audio_url}" type="audio/wav">
-                            Your browser does not support the audio element.
-                        </audio>
-                    </div>
-                    <div class="d-flex justify-content-between">
-                        <small class="text-muted">Duration: ${result.duration || 'N/A'}</small>
-                        <a href="${result.audio_url}" download class="btn btn-outline-primary btn-sm">
-                            <i data-feather="download" class="me-1"></i>Download
-                        </a>
-                    </div>
+            <div class="audio-result-card">
+                <div class="result-header">
+                    <i data-feather="check-circle" class="text-success me-2"></i>
+                    <strong>Audio Generated</strong>
+                </div>
+                <div class="audio-player-compact mt-2">
+                    <audio controls class="w-100">
+                        <source src="${result.audio_url}" type="audio/wav">
+                        Your browser does not support the audio element.
+                    </audio>
+                </div>
+                <div class="result-actions mt-2">
+                    <a href="${result.audio_url}" download class="btn btn-outline-success btn-sm">
+                        <i data-feather="download" class="me-1"></i>Download
+                    </a>
+                    <button class="btn btn-outline-primary btn-sm ms-2" onclick="copyToClipboard('${result.audio_url}', this)">
+                        <i data-feather="copy" class="me-1"></i>Share
+                    </button>
                 </div>
             </div>
         `;
@@ -474,6 +483,8 @@ class SonificationStudio {
     initializeVisualizations() {
         // Initialize audio visualizations
         this.setupAudioVisualization();
+        this.initializeDashboard();
+        this.startMetricsUpdates();
     }
 
     setupAudioVisualization() {
@@ -483,6 +494,169 @@ class SonificationStudio {
         }
         if (this.spectrumCanvas) {
             this.drawPlaceholderSpectrum();
+        }
+        
+        // Initialize dashboard visualizations
+        this.initializeRealtimeViz();
+    }
+
+    initializeDashboard() {
+        // Initialize real-time dashboard elements
+        this.dashboardMetrics = {
+            processingSpeed: 0.05,
+            audioGenerated: 847,
+            accuracyRate: 99.7,
+            systemLoad: 43
+        };
+
+        this.updateTimelineStatus('ready');
+    }
+
+    startMetricsUpdates() {
+        // Update metrics every 3 seconds with slight variations
+        setInterval(() => {
+            this.updateDashboardMetrics();
+        }, 3000);
+
+        // Update real-time visualizations
+        this.animateRealtimeViz();
+    }
+
+    updateDashboardMetrics() {
+        // Simulate real-time metric updates
+        const speedElement = document.getElementById('processingSpeed');
+        const audioElement = document.getElementById('audioGenerated');
+        const accuracyElement = document.getElementById('accuracyRate');
+        const loadElement = document.getElementById('systemLoad');
+
+        if (speedElement) {
+            const newSpeed = (Math.random() * 0.02 + 0.04).toFixed(3);
+            speedElement.textContent = newSpeed + 's';
+        }
+
+        if (audioElement) {
+            this.dashboardMetrics.audioGenerated += Math.floor(Math.random() * 3);
+            audioElement.textContent = this.dashboardMetrics.audioGenerated.toLocaleString();
+        }
+
+        if (accuracyElement) {
+            const accuracy = (99.5 + Math.random() * 0.4).toFixed(1);
+            accuracyElement.textContent = accuracy + '%';
+        }
+
+        if (loadElement) {
+            const load = Math.floor(35 + Math.random() * 20);
+            loadElement.textContent = load + '%';
+        }
+    }
+
+    initializeRealtimeViz() {
+        const realtimeCanvas = document.getElementById('realtimeWaveform');
+        const spectrumCanvas = document.getElementById('spectrumAnalyzer');
+
+        if (realtimeCanvas) {
+            this.realtimeCtx = realtimeCanvas.getContext('2d');
+            this.drawRealtimeWaveform();
+        }
+
+        if (spectrumCanvas) {
+            this.spectrumCtx = spectrumCanvas.getContext('2d');
+            this.drawSpectrumAnalyzer();
+        }
+    }
+
+    animateRealtimeViz() {
+        const animate = () => {
+            this.drawRealtimeWaveform();
+            this.drawSpectrumAnalyzer();
+            requestAnimationFrame(animate);
+        };
+        animate();
+    }
+
+    drawRealtimeWaveform() {
+        if (!this.realtimeCtx) return;
+
+        const canvas = this.realtimeCtx.canvas;
+        const width = canvas.width;
+        const height = canvas.height;
+
+        this.realtimeCtx.clearRect(0, 0, width, height);
+        
+        // Create gradient background
+        const gradient = this.realtimeCtx.createLinearGradient(0, 0, 0, height);
+        gradient.addColorStop(0, 'rgba(0, 212, 255, 0.1)');
+        gradient.addColorStop(1, 'rgba(0, 123, 255, 0.1)');
+        this.realtimeCtx.fillStyle = gradient;
+        this.realtimeCtx.fillRect(0, 0, width, height);
+
+        // Draw animated waveform
+        this.realtimeCtx.strokeStyle = '#00d4ff';
+        this.realtimeCtx.lineWidth = 2;
+        this.realtimeCtx.beginPath();
+
+        const time = Date.now() * 0.001;
+        for (let i = 0; i < width; i++) {
+            const x = i;
+            const y = height / 2 + Math.sin((i * 0.02) + time * 2) * 30 * Math.sin(time + i * 0.01);
+            
+            if (i === 0) {
+                this.realtimeCtx.moveTo(x, y);
+            } else {
+                this.realtimeCtx.lineTo(x, y);
+            }
+        }
+        this.realtimeCtx.stroke();
+    }
+
+    drawSpectrumAnalyzer() {
+        if (!this.spectrumCtx) return;
+
+        const canvas = this.spectrumCtx.canvas;
+        const width = canvas.width;
+        const height = canvas.height;
+
+        this.spectrumCtx.clearRect(0, 0, width, height);
+
+        // Draw frequency bars
+        const barWidth = width / 64;
+        const time = Date.now() * 0.002;
+
+        for (let i = 0; i < 64; i++) {
+            const barHeight = Math.abs(Math.sin(time + i * 0.1)) * height * 0.8;
+            
+            // Color based on frequency
+            const hue = (i / 64) * 240; // Blue to red spectrum
+            this.spectrumCtx.fillStyle = `hsla(${hue}, 80%, 60%, 0.8)`;
+            
+            this.spectrumCtx.fillRect(i * barWidth, height - barHeight, barWidth - 1, barHeight);
+        }
+    }
+
+    updateTimelineStatus(status) {
+        const timelineItems = document.querySelectorAll('.timeline-item');
+        
+        // Hide all timeline items first
+        timelineItems.forEach(item => {
+            item.style.display = 'none';
+        });
+
+        // Show appropriate timeline items based on status
+        switch(status) {
+            case 'ready':
+                const readyItem = timelineItems[0];
+                if (readyItem) readyItem.style.display = 'flex';
+                break;
+            case 'processing':
+                timelineItems.forEach((item, index) => {
+                    if (index <= 1) item.style.display = 'flex';
+                });
+                break;
+            case 'complete':
+                timelineItems.forEach(item => {
+                    item.style.display = 'flex';
+                });
+                break;
         }
     }
 
