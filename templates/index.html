@@ -1,1 +1,282 @@
 {% extends "base.html" %}
+
+{% block title %}Sonification Studio - Premium Audio Processing{% endblock %}
+
+{% block content %}
+{% include 'components/hero_section.html' %}
+
+<!-- Professional Dashboard -->
+<section id="dashboard" class="dashboard-main">
+    <div class="container">
+        <!-- Dashboard Header -->
+        <div class="dashboard-header mb-4 p-3 rounded">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h1 class="dashboard-title mb-1">🎵 Sonification Studio</h1>
+                    <p class="dashboard-subtitle mb-0">Professional Audio Processing Platform</p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <div class="system-status">
+                        <span class="status-indicator online"></span>
+                        <span>System Online</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Dashboard -->
+        <div class="row mb-4">
+            <div class="col-md-3 col-sm-6 mb-3">
+                <div class="glass-card metric-card">
+                    <div class="metric-header">
+                        <i data-feather="zap" class="metric-icon"></i>
+                        <span class="metric-label">Processing Speed</span>
+                    </div>
+                    <div class="metric-value" id="processingSpeed">0.048s</div>
+                    <div class="metric-trend positive">+5.2% faster</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6 mb-3">
+                <div class="glass-card metric-card">
+                    <div class="metric-header">
+                        <i data-feather="music" class="metric-icon"></i>
+                        <span class="metric-label">Audio Generated</span>
+                    </div>
+                    <div class="metric-value" id="audioGenerated">847</div>
+                    <div class="metric-trend positive">+12 today</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6 mb-3">
+                <div class="glass-card metric-card">
+                    <div class="metric-header">
+                        <i data-feather="target" class="metric-icon"></i>
+                        <span class="metric-label">AI Accuracy</span>
+                    </div>
+                    <div class="metric-value" id="accuracyRate">99.7%</div>
+                    <div class="metric-trend positive">+0.3% this week</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6 mb-3">
+                <div class="glass-card metric-card">
+                    <div class="metric-header">
+                        <i data-feather="cpu" class="metric-icon"></i>
+                        <span class="metric-label">System Load</span>
+                    </div>
+                    <div class="metric-value" id="systemLoad">43%</div>
+                    <div class="metric-trend neutral">Optimal</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Workspace -->
+        <div class="row">
+            <!-- Input & Controls Panel -->
+            <div class="col-lg-8">
+                <div class="glass-card workspace-panel">
+                    <div class="panel-header">
+                        <h3><i data-feather="edit" class="me-2"></i>Audio Generation Workspace</h3>
+                        <div class="panel-controls">
+                            <button class="btn btn-outline-light btn-sm" onclick="resetWorkspace()">
+                                <i data-feather="refresh-cw"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <!-- Input Mode Selector -->
+                        <div class="input-selector mb-3">
+                            <div class="btn-group w-100" role="group">
+                                <input type="radio" class="btn-check" name="inputMode" id="textMode" value="text" checked>
+                                <label class="btn btn-outline-light" for="textMode">
+                                    <i data-feather="type" class="me-2"></i>Text Input
+                                </label>
+                                <input type="radio" class="btn-check" name="inputMode" id="imageMode" value="image">
+                                <label class="btn btn-outline-light" for="imageMode">
+                                    <i data-feather="image" class="me-2"></i>Image Input
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Text Input Section -->
+                        <div id="textInputSection" class="input-section mb-3">
+                            <label for="textInput" class="form-label">Enter Text to Convert</label>
+                            <textarea id="textInput" class="form-control" rows="4" placeholder="Type your message here..."></textarea>
+                            <div class="input-stats">
+                                <small>Characters: <span id="charCount">0</span></small>
+                            </div>
+                        </div>
+
+                        <!-- Image Input Section -->
+                        <div id="imageInputSection" class="input-section mb-3" style="display: none;">
+                            <label class="form-label">Upload Image</label>
+                            <div id="imageUploadZone" class="upload-zone-compact">
+                                <i data-feather="upload" class="upload-icon-sm"></i>
+                                <span>Click or drag image here</span>
+                                <input type="file" id="imageFileInput" accept="image/*" style="display: none;">
+                            </div>
+                            <div id="imagePreview" style="display: none;" class="mt-2">
+                                <img id="previewImg" class="img-preview" alt="Preview">
+                                <small id="imageInfo" class="text-muted d-block mt-1"></small>
+                            </div>
+                        </div>
+
+                        <!-- Audio Parameters -->
+                        <div class="audio-params mb-3">
+                            <h6 class="control-label">Audio Parameters</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label for="minFreq" class="form-label">Min Frequency (Hz)</label>
+                                    <input type="number" id="minFreq" class="form-control" value="800" min="20" max="20000">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="maxFreq" class="form-label">Max Frequency (Hz)</label>
+                                    <input type="number" id="maxFreq" class="form-control" value="3000" min="20" max="20000">
+                                </div>
+                            </div>
+                            <div class="frequency-presets mt-2">
+                                <button type="button" class="preset-btn" onclick="setFrequencyRange(200, 800)">Bass</button>
+                                <button type="button" class="preset-btn" onclick="setFrequencyRange(800, 3000)">Mid</button>
+                                <button type="button" class="preset-btn" onclick="setFrequencyRange(3000, 8000)">High</button>
+                                <button type="button" class="preset-btn" onclick="setFrequencyRange(20, 20000)">Full</button>
+                            </div>
+                        </div>
+
+                        <!-- Generation Controls -->
+                        <div class="generation-controls">
+                            <button id="generateBtn" class="btn btn-premium btn-lg encode-btn">
+                                <i data-feather="zap" class="me-2"></i>START CREATING AUDIO
+                            </button>
+                        </div>
+
+                        <!-- Results Section -->
+                        <div id="encodingResult" class="results-section mt-4" style="display: none;">
+                            <!-- Results will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics & Status Panel -->
+            <div class="col-lg-4">
+                <!-- Real-time Visualizations -->
+                <div class="glass-card analytics-panel">
+                    <div class="panel-header">
+                        <h4><i data-feather="activity" class="me-2"></i>Real-time Analysis</h4>
+                    </div>
+                    <div class="panel-body">
+                        <div class="viz-container mb-3">
+                            <span class="viz-label">Waveform</span>
+                            <canvas id="realtimeWaveform" class="viz-canvas" width="300" height="80"></canvas>
+                        </div>
+                        <div class="viz-container">
+                            <span class="viz-label">Spectrum</span>
+                            <canvas id="spectrumAnalyzer" class="viz-canvas" width="300" height="80"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Status Timeline -->
+                <div class="glass-card analytics-panel">
+                    <div class="panel-header">
+                        <h4><i data-feather="clock" class="me-2"></i>Process Status</h4>
+                    </div>
+                    <div class="panel-body">
+                        <div class="timeline-container">
+                            <div class="timeline-item">
+                                <div class="timeline-dot active"></div>
+                                <div class="timeline-content">
+                                    <strong>Ready</strong>
+                                    <small>System initialized</small>
+                                </div>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="timeline-dot processing"></div>
+                                <div class="timeline-content">
+                                    <strong>Processing</strong>
+                                    <small>Generating audio...</small>
+                                </div>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="timeline-dot complete"></div>
+                                <div class="timeline-content">
+                                    <strong>Complete</strong>
+                                    <small>Audio ready for download</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Tools -->
+                <div class="glass-card analytics-panel">
+                    <div class="panel-header">
+                        <h4><i data-feather="tool" class="me-2"></i>Quick Tools</h4>
+                    </div>
+                    <div class="panel-body">
+                        <div class="quick-tools">
+                            <div class="tool-btn" onclick="clearAllInputs()">
+                                <i data-feather="trash-2"></i>
+                                <span>Clear All</span>
+                            </div>
+                            <div class="tool-btn" onclick="downloadLastFile()">
+                                <i data-feather="download"></i>
+                                <span>Download</span>
+                            </div>
+                            <div class="tool-btn" onclick="showSettings()">
+                                <i data-feather="settings"></i>
+                                <span>Settings</span>
+                            </div>
+                            <div class="tool-btn" onclick="showHelp()">
+                                <i data-feather="help-circle"></i>
+                                <span>Help</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Audio Decoding Section -->
+<section id="decoding" class="section-padding">
+    <div class="container">
+        <h2 class="section-title text-center mb-5">Audio Decoding Studio</h2>
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="glass-card">
+                    <div class="card-body p-4">
+                        <h5 class="card-title mb-4">
+                            <i data-feather="volume-2" class="me-2"></i>
+                            Decode Audio Files
+                        </h5>
+                        
+                        <div id="audioUploadZone" class="upload-zone mb-4">
+                            <i data-feather="upload-cloud" class="upload-icon"></i>
+                            <h6>Upload Audio File</h6>
+                            <p class="text-muted">Drag and drop or click to select WAV files</p>
+                            <input type="file" id="audioFileInput" accept="audio/*" style="display: none;">
+                        </div>
+
+                        <div class="text-center">
+                            <button id="decodeBtn" class="btn btn-outline-premium" disabled>
+                                <i data-feather="play" class="me-2"></i>Decode Audio
+                            </button>
+                        </div>
+
+                        <div id="decodedResults" style="display: none;" class="mt-4">
+                            <div class="result-content">
+                                <!-- Decoded results will appear here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/app-minimal.js') }}"></script>
+{% endblock %}
