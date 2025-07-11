@@ -1405,7 +1405,66 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+// Dashboard utility functions
+function resetWorkspace() {
+    document.getElementById('textInput').value = '';
+    document.getElementById('charCount').textContent = '0';
+    document.getElementById('imagePreview').style.display = 'none';
+    document.getElementById('generationResults').style.display = 'none';
+    document.getElementById('decodeResults').style.display = 'none';
+    showNotification('✨ Workspace reset', 'info', 2000);
+}
+
+function setFrequencyRange(min, max) {
+    document.getElementById('minFreq').value = min;
+    document.getElementById('maxFreq').value = max;
+    showNotification(`🎵 Frequency set: ${min}-${max}Hz`, 'info', 2000);
+}
+
+function clearAllInputs() {
+    resetWorkspace();
+    document.querySelector('input[name="inputMode"][value="text"]').checked = true;
+    document.getElementById('textInputSection').style.display = 'block';
+    document.getElementById('imageInputSection').style.display = 'none';
+}
+
+function downloadLastFile() {
+    showNotification('📥 No recent files available', 'warning', 3000);
+}
+
+function showSettings() {
+    showNotification('⚙️ Settings panel coming soon', 'info', 3000);
+}
+
+function showHelp() {
+    showNotification('❓ Help documentation coming soon', 'info', 3000);
+}
+
 // Initialize the application when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     new SonificationStudio();
+    
+    // Initialize dashboard-specific functionality
+    const textInput = document.getElementById('textInput');
+    if (textInput) {
+        textInput.addEventListener('input', (e) => {
+            document.getElementById('charCount').textContent = e.target.value.length;
+        });
+    }
+    
+    // Input mode switcher
+    document.querySelectorAll('input[name="inputMode"]').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            const textSection = document.getElementById('textInputSection');
+            const imageSection = document.getElementById('imageInputSection');
+            
+            if (e.target.value === 'text') {
+                textSection.style.display = 'block';
+                imageSection.style.display = 'none';
+            } else {
+                textSection.style.display = 'none';
+                imageSection.style.display = 'block';
+            }
+        });
+    });
 });
