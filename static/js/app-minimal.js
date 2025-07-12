@@ -23,12 +23,8 @@ function showNotification(message, type = 'info', duration = 3000) {
 
 // Event listeners setup
 function setupEventListeners() {
-    // Generate buttons (both hero and workspace)
-    const generateBtn = document.getElementById('generateBtn');
+    // Generate button (workspace only)
     const workspaceGenerateBtn = document.getElementById('workspaceGenerateBtn');
-    if (generateBtn) {
-        generateBtn.addEventListener('click', handleGenerate);
-    }
     if (workspaceGenerateBtn) {
         workspaceGenerateBtn.addEventListener('click', handleGenerate);
     }
@@ -265,17 +261,11 @@ function makeAudioRequest(url, formData, operation) {
     if (isProcessing) return;
 
     isProcessing = true;
-    const heroBtn = document.getElementById('generateBtn');
     const workspaceBtn = document.getElementById('workspaceGenerateBtn');
     
-    const heroOriginalText = heroBtn ? heroBtn.innerHTML : '';
     const workspaceOriginalText = workspaceBtn ? workspaceBtn.innerHTML : '';
 
-    // Update both buttons to processing state
-    if (heroBtn) {
-        heroBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Processing...';
-        heroBtn.disabled = true;
-    }
+    // Update button to processing state
     if (workspaceBtn) {
         workspaceBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Processing...';
         workspaceBtn.disabled = true;
@@ -299,11 +289,7 @@ function makeAudioRequest(url, formData, operation) {
         showNotification(`❌ ${operation} failed`, 'error');
     })
     .finally(() => {
-        // Restore both buttons to original state
-        if (heroBtn) {
-            heroBtn.innerHTML = heroOriginalText;
-            heroBtn.disabled = false;
-        }
+        // Restore button to original state
         if (workspaceBtn) {
             workspaceBtn.innerHTML = workspaceOriginalText;
             workspaceBtn.disabled = false;

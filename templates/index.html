@@ -4,26 +4,27 @@
 {% block title %}Sonification Studio - Premium Audio Processing{% endblock %}
 
 {% block content %}
-<!-- Modern Hero Section -->
-<section class="enterprise-header" style="padding: 3rem 0 2rem; min-height: 40vh;">
+<!-- Dashboard Header -->
+<nav class="dashboard-header">
     <div class="container">
         <div class="row align-items-center">
-            <div class="col-lg-12 text-center">
-                <div class="enterprise-logo">
-                    🎵 Sonification Studio
+            <div class="col-md-6">
+                <div class="brand-section">
+                    <h1 class="dashboard-title">🎵 Sonification Studio</h1>
+                    <span class="dashboard-subtitle">AI-Compatible Audio Encoding Platform</span>
                 </div>
-                <div class="enterprise-tagline">
-                    Advanced AI-Compatible Audio Encoding Platform
-                </div>
-                <div class="hero-buttons mt-3">
-                    <button id="generateBtn" class="btn btn-premium btn-lg encode-btn">
-                        <i data-feather="zap" class="me-2"></i>START CREATING AUDIO
-                    </button>
+            </div>
+            <div class="col-md-6">
+                <div class="header-controls">
+                    <div class="status-indicator">
+                        <span class="status-dot active"></span>
+                        <span class="status-text">System Online</span>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</section>
+</nav>
 
 <!-- Professional Dashboard -->
 <section id="dashboard" class="dashboard-main">
