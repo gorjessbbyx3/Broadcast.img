@@ -1,6 +1,8 @@
 // Global variables
 let isProcessing = false;
 let currentAudioUrl = null;
+let processedCount = 0;
+let processingStartTime = null;
 
 // Notification system
 function showNotification(message, type = 'info', duration = 3000) {
@@ -19,6 +21,31 @@ function showNotification(message, type = 'info', duration = 3000) {
     setTimeout(() => {
         toastBootstrap.hide();
     }, duration);
+}
+
+// Metrics update functions
+function updateMetrics() {
+    // Update audio generated count
+    const audioGenerated = document.getElementById('audioGenerated');
+    if (audioGenerated) {
+        audioGenerated.textContent = processedCount;
+    }
+
+    // Update trend
+    const audioTrend = audioGenerated?.nextElementSibling;
+    if (audioTrend && processedCount > 0) {
+        audioTrend.textContent = `+${processedCount} generated`;
+        audioTrend.className = 'metric-trend positive';
+    }
+
+    // Update system load to show activity
+    const systemLoad = document.getElementById('systemLoad');
+    const systemTrend = systemLoad?.nextElementSibling;
+    if (systemLoad && systemTrend) {
+        systemLoad.textContent = isProcessing ? 'Active' : 'Idle';
+        systemTrend.textContent = isProcessing ? 'Processing...' : 'Ready';
+        systemTrend.className = isProcessing ? 'metric-trend processing' : 'metric-trend neutral';
+    }
 }
 
 // Event listeners setup
@@ -261,6 +288,7 @@ function makeAudioRequest(url, formData, operation) {
     if (isProcessing) return;
 
     isProcessing = true;
+    processingStartTime = Date.now();
     const workspaceBtn = document.getElementById('workspaceGenerateBtn');
     
     const workspaceOriginalText = workspaceBtn ? workspaceBtn.innerHTML : '';
@@ -271,6 +299,9 @@ function makeAudioRequest(url, formData, operation) {
         workspaceBtn.disabled = true;
     }
 
+    // Update metrics to show processing state
+    updateMetrics();
+
     fetch(url, {
         method: 'POST',
         body: formData
@@ -278,6 +309,14 @@ function makeAudioRequest(url, formData, operation) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
+            // Update processing metrics
+            const processingTime = ((Date.now() - processingStartTime) / 1000).toFixed(3);
+            const speedElement = document.getElementById('processingSpeed');
+            if (speedElement) {
+                speedElement.textContent = `${processingTime}s`;
+            }
+            
+            processedCount++;
             loadAudioPlayer(data.audio_url);
             showNotification(`✅ ${operation} successful!`, 'success');
         } else {
@@ -295,6 +334,7 @@ function makeAudioRequest(url, formData, operation) {
             workspaceBtn.disabled = false;
         }
         isProcessing = false;
+        updateMetrics();
     });
 }
 
