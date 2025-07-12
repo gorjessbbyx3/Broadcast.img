@@ -810,6 +810,16 @@ body::before {
     border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
+/* Generate Button Section */
+.generate-section {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: 1rem;
+    text-align: center;
+}
+
 .frequency-presets {
     display: flex;
     gap: 0.5rem;

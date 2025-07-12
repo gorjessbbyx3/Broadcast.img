@@ -23,10 +23,14 @@ function showNotification(message, type = 'info', duration = 3000) {
 
 // Event listeners setup
 function setupEventListeners() {
-    // Generate button
+    // Generate buttons (both hero and workspace)
     const generateBtn = document.getElementById('generateBtn');
+    const workspaceGenerateBtn = document.getElementById('workspaceGenerateBtn');
     if (generateBtn) {
         generateBtn.addEventListener('click', handleGenerate);
+    }
+    if (workspaceGenerateBtn) {
+        workspaceGenerateBtn.addEventListener('click', handleGenerate);
     }
 
     // Decode button
@@ -261,11 +265,21 @@ function makeAudioRequest(url, formData, operation) {
     if (isProcessing) return;
 
     isProcessing = true;
-    const btn = document.getElementById('generateBtn');
-    const originalText = btn.innerHTML;
+    const heroBtn = document.getElementById('generateBtn');
+    const workspaceBtn = document.getElementById('workspaceGenerateBtn');
+    
+    const heroOriginalText = heroBtn ? heroBtn.innerHTML : '';
+    const workspaceOriginalText = workspaceBtn ? workspaceBtn.innerHTML : '';
 
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Processing...';
-    btn.disabled = true;
+    // Update both buttons to processing state
+    if (heroBtn) {
+        heroBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Processing...';
+        heroBtn.disabled = true;
+    }
+    if (workspaceBtn) {
+        workspaceBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Processing...';
+        workspaceBtn.disabled = true;
+    }
 
     fetch(url, {
         method: 'POST',
@@ -285,8 +299,15 @@ function makeAudioRequest(url, formData, operation) {
         showNotification(`❌ ${operation} failed`, 'error');
     })
     .finally(() => {
-        btn.innerHTML = originalText;
-        btn.disabled = false;
+        // Restore both buttons to original state
+        if (heroBtn) {
+            heroBtn.innerHTML = heroOriginalText;
+            heroBtn.disabled = false;
+        }
+        if (workspaceBtn) {
+            workspaceBtn.innerHTML = workspaceOriginalText;
+            workspaceBtn.disabled = false;
+        }
         isProcessing = false;
     });
 }
